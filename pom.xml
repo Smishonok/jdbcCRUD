@@ -24,18 +24,22 @@
             <id>test</id>
             <activation>
                 <property>
-                    <name>test</name>
-                    <value>env</value>
+                    <name>environment</name>
+                    <value>test</value>
                 </property>
             </activation>
+            <properties>
+                <db.url>jdbc:mysql://localhost:3306/jdbcCrudTest?serverTimezone=UTC</db.url>
+            </properties>
+        </profile>
+        <profile>
+            <id>prode</id>
 
             <properties>
-                <env>test</env>
+                <db.url>jdbc:mysql://localhost:3306/jdbcCrudProd?serverTimezone=UTC</db.url>
             </properties>
         </profile>
     </profiles>
-
-
 
     <dependencies>
         <dependency>
@@ -71,9 +75,12 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>myFlyWay.properties</exclude>
+                    <exclude>myFlyWayTest.properties</exclude>
+                </excludes>
             </resource>
         </resources>
-
 
         <plugins>
             <plugin>
@@ -115,13 +122,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
-                <executions>
-                    <execution>
-                        <configuration>
-                            <argLine>-P test</argLine>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.flywaydb</groupId>
@@ -132,7 +132,21 @@
                         <configFile>src/main/resources/myFlyWay.properties</configFile>
                     </configFiles>
                 </configuration>
-
+                <executions>
+                    <execution>
+                        <id>test</id>
+                        <goals>
+                            <goal>clean</goal>
+                            <goal>migrate</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <configFiles>
+                                <configFile>src/main/resources/myFlyWayTest.properties</configFile>
+                            </configFiles>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
