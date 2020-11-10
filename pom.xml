@@ -19,27 +19,47 @@
         <gson.version>2.8.6</gson.version>
     </properties>
 
+
+
     <profiles>
         <profile>
             <id>test</id>
-            <activation>
-                <property>
-                    <name>environment</name>
-                    <value>test</value>
-                </property>
-            </activation>
             <properties>
                 <db.url>jdbc:mysql://localhost:3306/jdbcCrudTest?serverTimezone=UTC</db.url>
             </properties>
         </profile>
         <profile>
-            <id>prode</id>
-
+            <id>package</id>
             <properties>
                 <db.url>jdbc:mysql://localhost:3306/jdbcCrudProd?serverTimezone=UTC</db.url>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <executions>
+                            <execution>
+                                <id>packagePhaseResourcesCopying</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <filters>
+                                        <filter>src/</filter>
+                                    </filters>
+                                    <outputDirectory/>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
+
 
     <dependencies>
         <dependency>
@@ -82,6 +102,7 @@
             </resource>
         </resources>
 
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -110,8 +131,15 @@
                 <version>3.2.0</version>
                 <executions>
                     <execution>
-                        <id>show-profile</id>
-                        <phase>compile</phase>
+                        <id>show-profile-testPhase</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>active-profiles</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>show-profile-packagePhase</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>active-profiles</goal>
                         </goals>
@@ -134,19 +162,18 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>test</id>
+                        <id>testDBMigrations</id>
+                        <phase>generate-test-sources</phase>
                         <goals>
                             <goal>clean</goal>
                             <goal>migrate</goal>
                         </goals>
-                        <phase>generate-test-sources</phase>
                         <configuration>
-                            <configFiles>
-                                <configFile>src/main/resources/myFlyWayTest.properties</configFile>
-                            </configFiles>
+                            <configFiles>src/main/resources/myFlyWayTest.properties</configFiles>
                         </configuration>
                     </execution>
                 </executions>
+
             </plugin>
         </plugins>
     </build>
