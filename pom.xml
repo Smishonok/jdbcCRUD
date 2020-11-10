@@ -20,47 +20,6 @@
     </properties>
 
 
-
-    <profiles>
-        <profile>
-            <id>test</id>
-            <properties>
-                <db.url>jdbc:mysql://localhost:3306/jdbcCrudTest?serverTimezone=UTC</db.url>
-            </properties>
-        </profile>
-        <profile>
-            <id>package</id>
-            <properties>
-                <db.url>jdbc:mysql://localhost:3306/jdbcCrudProd?serverTimezone=UTC</db.url>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>3.2.0</version>
-                        <executions>
-                            <execution>
-                                <id>packagePhaseResourcesCopying</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <filters>
-                                        <filter>src/</filter>
-                                    </filters>
-                                    <outputDirectory/>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -98,12 +57,47 @@
                 <excludes>
                     <exclude>myFlyWay.properties</exclude>
                     <exclude>myFlyWayTest.properties</exclude>
+                    <exclude>connectionProd.properties</exclude>
+                    <exclude>connectionTest.properties</exclude>
                 </excludes>
             </resource>
         </resources>
 
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>copying-test-resources</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>src/main/resources/connectionTest.properties</filter>
+                            </filters>
+                            <outputDirectory/>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copying-prod-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>src/main/resources/connectionProd.properties</filter>
+                            </filters>
+                            <outputDirectory/>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
