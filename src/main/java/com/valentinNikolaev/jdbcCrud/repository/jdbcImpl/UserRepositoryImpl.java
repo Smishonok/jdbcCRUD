@@ -6,20 +6,34 @@ import com.valentinNikolaev.jdbcCrud.models.User;
 import com.valentinNikolaev.jdbcCrud.repository.PostRepository;
 import com.valentinNikolaev.jdbcCrud.repository.UserRepository;
 import com.valentinNikolaev.jdbcCrud.utils.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+@Component
+@Scope("singleton")
 public class UserRepositoryImpl implements UserRepository {
+
+    private ConnectionFactory connectionFactory;
+    private PostRepository postRepository;
+
+    public UserRepositoryImpl(@Autowired ConnectionFactory connectionFactory,
+                              @Autowired PostRepository postRepository) {
+        this.connectionFactory = connectionFactory;
+        this.postRepository = postRepository;
+    }
 
     @Override
     public User add(User entity) {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "insert into " + "jdbccrud.users (first_name, last_name, region_id, role)" +
+                        "insert into users (first_name, last_name, region_id, role)" +
                         "VALUES " + "(?,?,?,?)");
                 preparedStatement.setString(1, entity.getFirstName());
                 preparedStatement.setString(2, entity.getLastName());
@@ -33,7 +47,7 @@ public class UserRepositoryImpl implements UserRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         return get(getUserIdByFirstAndLastName(entity.getFirstName(), entity.getLastName()));
     }
@@ -43,7 +57,7 @@ public class UserRepositoryImpl implements UserRepository {
             Long userId = null;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select id from " + "jdbccrud.users " + "where first_name=? and " +
+                        "select id from " + "users " + "where first_name=? and " +
                         "last_name=?");
                 preparedStatement.setString(1, firstName);
                 preparedStatement.setString(2, lastName);
@@ -65,7 +79,7 @@ public class UserRepositoryImpl implements UserRepository {
             }
         };
 
-        return ConnectionFactory.doTransaction(userTransaction);
+        return connectionFactory.doTransaction(userTransaction);
     }
 
     @Override
@@ -75,7 +89,7 @@ public class UserRepositoryImpl implements UserRepository {
             try {
                 PreparedStatement userPreparedStatement = connection.prepareStatement(
                         "select first_name,last_name,region_id,regions.name,role from " +
-                        "jdbccrud.users left join jdbccrud" +
+                        "users left join jdbccrud" +
                         ".regions on users.region_id = regions.id where users.id=?");
                 userPreparedStatement.setLong(1, id);
                 ResultSet userResultSet = userPreparedStatement.executeQuery();
@@ -89,7 +103,6 @@ public class UserRepositoryImpl implements UserRepository {
 
                     userFromDB = new User(id, firstName, lastName, region, role);
 
-                    PostRepository postRepository = new PostRepositoryImpl();
                     userFromDB.getPosts().addAll(postRepository.getPostsByUserId(id));
                 }
                 userResultSet.close();
@@ -106,7 +119,7 @@ public class UserRepositoryImpl implements UserRepository {
             }
         };
 
-        return ConnectionFactory.doTransaction(userTransaction);
+        return connectionFactory.doTransaction(userTransaction);
     }
 
     @Override
@@ -114,7 +127,7 @@ public class UserRepositoryImpl implements UserRepository {
         Function<Connection, Void> updateTransaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "update jdbccrud.users set first_name=?,last_name=?,region_id=?,role=? " +
+                        "update users set first_name=?,last_name=?,region_id=?,role=? " +
                         "where id=?");
                 preparedStatement.setString(1, user.getFirstName());
                 preparedStatement.setString(2, user.getLastName());
@@ -129,7 +142,7 @@ public class UserRepositoryImpl implements UserRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(updateTransaction);
+        connectionFactory.doTransaction(updateTransaction);
 
         return get(user.getId());
     }
@@ -139,7 +152,7 @@ public class UserRepositoryImpl implements UserRepository {
         Function<Connection, Void> userRemoveTransaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "delete from jdbccrud.users where id=?");
+                        "delete from users where id=?");
                 preparedStatement.setLong(1, id);
                 preparedStatement.executeUpdate();
                 connection.commit();
@@ -149,7 +162,7 @@ public class UserRepositoryImpl implements UserRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(userRemoveTransaction);
+        connectionFactory.doTransaction(userRemoveTransaction);
 
         return ! isContains(id);
     }
@@ -162,7 +175,7 @@ public class UserRepositoryImpl implements UserRepository {
                 PreparedStatement preparedStatement = connection.prepareStatement(
                         "select users.id, first_name, last_name, region_id,name, role " +
                         "from" +
-                        " jdbccrud.users left join jdbccrud.regions on users.region_id = regions.id");
+                        " users left join regions on users.region_id = regions.id");
                 ResultSet resultSet = preparedStatement.executeQuery();
 
                 while (resultSet.next()) {
@@ -176,7 +189,6 @@ public class UserRepositoryImpl implements UserRepository {
                     User user = new User(id, firstName, lastName, new Region(regionId, regionName),
                                          Role.valueOf(role));
 
-                    PostRepository postRepository = new PostRepositoryImpl();
                     user.getPosts().addAll(postRepository.getPostsByUserId(id));
                     users.add(user);
                 }
@@ -187,7 +199,7 @@ public class UserRepositoryImpl implements UserRepository {
             return users;
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     @Override
@@ -195,7 +207,7 @@ public class UserRepositoryImpl implements UserRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "truncate jdbccrud.users");
+                        "truncate users");
                 preparedStatement.executeUpdate();
                 connection.commit();
             } catch (SQLException e) {
@@ -204,13 +216,13 @@ public class UserRepositoryImpl implements UserRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         Function<Connection, Boolean> isAnyExist = connection->{
             boolean isResultSetNotEmpty = false;
             try {
                 Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery("select *from jdbccrud.users");
+                ResultSet resultSet = statement.executeQuery("select *from users");
                 isResultSetNotEmpty = ! resultSet.next();
                 resultSet.close();
             } catch (SQLException e) {
@@ -220,7 +232,7 @@ public class UserRepositoryImpl implements UserRepository {
             return isResultSetNotEmpty;
         };
 
-        return ConnectionFactory.doTransaction(isAnyExist);
+        return connectionFactory.doTransaction(isAnyExist);
     }
 
     @Override
@@ -229,7 +241,7 @@ public class UserRepositoryImpl implements UserRepository {
             boolean isContain = false;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.users where id=?");
+                        "select * from users where id=?");
                 preparedStatement.setLong(1, id);
                 ResultSet resultSet = preparedStatement.executeQuery();
                 isContain = resultSet.next();
@@ -240,6 +252,6 @@ public class UserRepositoryImpl implements UserRepository {
             return isContain;
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 }

@@ -1,16 +1,13 @@
 package com.valentinNikolaev.jdbcCrud.view.regionRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class HelpRegionRequestHandler extends RegionRequestHandler {
 
     public HelpRegionRequestHandler(){}
-
-    public HelpRegionRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
-    }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {

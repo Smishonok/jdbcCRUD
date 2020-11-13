@@ -4,6 +4,9 @@ import com.valentinNikolaev.jdbcCrud.models.Post;
 import com.valentinNikolaev.jdbcCrud.models.Region;
 import com.valentinNikolaev.jdbcCrud.repository.PostRepository;
 import com.valentinNikolaev.jdbcCrud.utils.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -12,7 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+@Component
+@Scope("singleton")
 public class PostRepositoryImpl implements PostRepository {
+
+    private ConnectionFactory connectionFactory;
+
+    public PostRepositoryImpl(@Autowired ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
     @Override
     public List<Post> getPostsByUserId(Long userId) {
         Function<Connection, List<Post>> transaction = connection->{
@@ -42,7 +54,7 @@ public class PostRepositoryImpl implements PostRepository {
             return posts;
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     @Override
@@ -76,7 +88,7 @@ public class PostRepositoryImpl implements PostRepository {
             return isResultSetEmpty;
         };
 
-        return ConnectionFactory.doTransaction(checkRequestTransaction);
+        return connectionFactory.doTransaction(checkRequestTransaction);
     }
 
     @Override
@@ -101,7 +113,7 @@ public class PostRepositoryImpl implements PostRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         return getPostByUserIdContentAndDate(post.getUserId(), post.getContent(),
                                              post.getDateOfCreation());
@@ -134,7 +146,7 @@ public class PostRepositoryImpl implements PostRepository {
             }
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     private Post getPostFromResultSet(ResultSet resultSet) throws SQLException {
@@ -173,7 +185,7 @@ public class PostRepositoryImpl implements PostRepository {
             }
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     @Override
@@ -196,7 +208,7 @@ public class PostRepositoryImpl implements PostRepository {
             } return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         return get(post.getId());
     }
@@ -226,7 +238,7 @@ public class PostRepositoryImpl implements PostRepository {
         };
 
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     @Override
@@ -242,7 +254,7 @@ public class PostRepositoryImpl implements PostRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         Function<Connection, Boolean> checkingTransaction = connection->{
             boolean isResultSetEmpty = false;
@@ -258,7 +270,7 @@ public class PostRepositoryImpl implements PostRepository {
             return isResultSetEmpty;
         };
 
-        return ConnectionFactory.doTransaction(checkingTransaction);
+        return connectionFactory.doTransaction(checkingTransaction);
     }
 
     @Override
@@ -279,6 +291,6 @@ public class PostRepositoryImpl implements PostRepository {
             return isResultSetEmpty;
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 }

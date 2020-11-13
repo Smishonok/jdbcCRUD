@@ -1,33 +1,31 @@
 package com.valentinNikolaev.jdbcCrud.view.postsRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
 import com.valentinNikolaev.jdbcCrud.controller.PostController;
 import com.valentinNikolaev.jdbcCrud.controller.UserController;
 import com.valentinNikolaev.jdbcCrud.models.Post;
 import com.valentinNikolaev.jdbcCrud.models.User;
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class GetPostRequestHandler extends PostRequestHandler {
 
     private PostController postController;
     private UserController userController;
 
-    public GetPostRequestHandler() {
-    }
-
-    public GetPostRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public GetPostRequestHandler(@Autowired PostController postController,
+                                 @Autowired UserController userController) {
+        this.postController = postController;
+        this.userController = userController;
     }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
         if (GET.equals(action)) {
-            this.postController = ControllersIocContainer.getPostController();
-            this.userController = ControllersIocContainer.getUserController();
             processRequest(options);
         } else {
             getNextHandler(action, options);
@@ -57,8 +55,8 @@ public class GetPostRequestHandler extends PostRequestHandler {
                 break;
             default:
                 System.out.println("Invalid request type. Please, check request type and try " +
-                                           "again, or take help information using \"" + ADD + " " +
-                                           HELP + "\".\n");
+                                   "again, or take help information using \"" + ADD + " " + HELP +
+                                   "\".\n");
                 break;
         }
     }
@@ -83,8 +81,8 @@ public class GetPostRequestHandler extends PostRequestHandler {
             return;
         }
 
-        if (isOptionsValid(requestOptions) && isIdLong(requestOptions) && isUserExists(
-                requestOptions)) {
+        if (isOptionsValid(requestOptions) && isIdLong(requestOptions) &&
+            isUserExists(requestOptions)) {
             List<Post> userPosts = this.postController.getPostsByUserId(requestOptions.get(0));
             userPosts.forEach(this::printPost);
         }
@@ -100,17 +98,17 @@ public class GetPostRequestHandler extends PostRequestHandler {
     }
 
     private void printPost(Post post) {
-        String userName =
-                "User id: " + post.getUserId();
-        String            postId    = "Post id: " + post.getId();
+        String userName = "User id: " + post.getUserId();
+        String postId = "Post id: " + post.getId();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy mm:HH:ss");
-        String            postDate  = "Post created: " + post.getDateOfCreation().format(formatter);
-        String postUpdatingDate = post.getDateOfLastUpdate().equals(post.getDateOfCreation()) ? "" :
-                "Post updated: " + post.getDateOfLastUpdate().format(formatter);
+        String postDate = "Post created: " + post.getDateOfCreation().format(formatter);
+        String postUpdatingDate = post.getDateOfLastUpdate().equals(post.getDateOfCreation())
+                                  ? ""
+                                  : "Post updated: " + post.getDateOfLastUpdate().format(formatter);
 
         String postView =
                 postId + "\n" + userName + "\n" + postDate + "\t" + postUpdatingDate + "\n" + "\t" +
-                        post.getContent() + "\n";
+                post.getContent() + "\n";
 
         System.out.println(postView);
     }
@@ -120,7 +118,7 @@ public class GetPostRequestHandler extends PostRequestHandler {
         if (requestOptions.size() != 1) {
             System.out.println(
                     "Invalid request format. Please, check request format and try again, " +
-                            "or get help information.");
+                    "or get help information.");
             isOptionsCorrect = false;
         }
 
@@ -133,7 +131,7 @@ public class GetPostRequestHandler extends PostRequestHandler {
         String userIdValue = requestOptions.get(0);
         if (! isLong(userIdValue)) {
             System.out.println("The id number should consist only of numbers. Please, check the " +
-                                       "id and try again.");
+                               "id and try again.");
             isOptionsCorrect = false;
         }
 
@@ -146,9 +144,8 @@ public class GetPostRequestHandler extends PostRequestHandler {
         String userId = requestOptions.get(0);
         Optional<User> user = this.userController.getUserById(userId);
         if (user.isEmpty()) {
-            System.out.println(
-                    "User with id: " + userId + " is not exists. Please, check the " +
-                            "user`s id number and try again.\n");
+            System.out.println("User with id: " + userId + " is not exists. Please, check the " +
+                               "user`s id number and try again.\n");
             isOptionsCorrect = false;
         }
         return isOptionsCorrect;
@@ -157,10 +154,10 @@ public class GetPostRequestHandler extends PostRequestHandler {
 
     private void getHelpForGettingPostRequest() {
         String helpInfo = "For getting post from the repository it can be used next formats of" +
-                "request:\n" + "\t1: " + GET + " " + POST_ID +
-                " [id number] - return the post with requested id\n" + "\t2: " + GET + " " +
-                USER_ID + " [id number] - return list of posts crated by user\n" + "\t3: " + GET +
-                " " + ALL + " - return list of all posts in repository\n";
+                          "request:\n" + "\t1: " + GET + " " + POST_ID +
+                          " [id number] - return the post with requested id\n" + "\t2: " + GET +
+                          " " + USER_ID + " [id number] - return list of posts crated by user\n" +
+                          "\t3: " + GET + " " + ALL + " - return list of all posts in repository\n";
 
         System.out.println(helpInfo);
         ;

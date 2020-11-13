@@ -1,27 +1,25 @@
 package com.valentinNikolaev.jdbcCrud.view.regionRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
 import com.valentinNikolaev.jdbcCrud.controller.RegionController;
 import com.valentinNikolaev.jdbcCrud.models.Region;
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class ChangeRegionRequestHandler extends RegionRequestHandler {
 
     private RegionController regionController;
 
-    public ChangeRegionRequestHandler(){}
-
-    public ChangeRegionRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public ChangeRegionRequestHandler(@Autowired RegionController regionController) {
+        this.regionController = regionController;
     }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
         if (CHANGE.equals(action)) {
-            this.regionController = ControllersIocContainer.getRegionController();
             processRequest(options);
         } else {
             getNextHandler(action, options);

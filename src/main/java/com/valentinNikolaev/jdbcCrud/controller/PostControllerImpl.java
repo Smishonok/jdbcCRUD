@@ -3,24 +3,23 @@ package com.valentinNikolaev.jdbcCrud.controller;
 import com.valentinNikolaev.jdbcCrud.models.Post;
 import com.valentinNikolaev.jdbcCrud.models.User;
 import com.valentinNikolaev.jdbcCrud.repository.PostRepository;
+import com.valentinNikolaev.jdbcCrud.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
+@Scope ("singleton")
 public class PostControllerImpl implements PostController {
     private PostRepository postRepository;
     private UserController userController;
 
-    public PostControllerImpl(PostRepository postRepository) {
+    public PostControllerImpl(@Autowired PostRepository postRepository,
+                              @Autowired UserController userController) {
         this.postRepository = postRepository;
-    }
-
-    public PostControllerImpl(PostRepository postRepository, UserController userController) {
-        this.postRepository = postRepository;
-        this.userController = userController;
-    }
-
-    public void setUserController(UserController userController) {
         this.userController = userController;
     }
 

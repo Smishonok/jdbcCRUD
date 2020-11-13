@@ -13,13 +13,6 @@ public abstract class RequestHandler {
 
     private RequestHandler nextRequestHandler;
 
-    public RequestHandler() {
-    }
-
-    public RequestHandler(RequestHandler nextRequestHandler) {
-        this.nextRequestHandler = nextRequestHandler;
-    }
-
     public abstract void handleRequest(String action, List<String> options)
             throws ClassNotFoundException;
 

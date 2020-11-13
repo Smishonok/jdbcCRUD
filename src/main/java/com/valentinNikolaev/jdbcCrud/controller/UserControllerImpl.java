@@ -4,27 +4,25 @@ import com.valentinNikolaev.jdbcCrud.models.Region;
 import com.valentinNikolaev.jdbcCrud.models.Role;
 import com.valentinNikolaev.jdbcCrud.models.User;
 import com.valentinNikolaev.jdbcCrud.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Component
+@Scope("singleton")
 public class UserControllerImpl implements UserController {
 
-    private UserRepository   usersRepository;
+    private UserRepository usersRepository;
     private RegionController regionController;
 
-    public UserControllerImpl(UserRepository usersRepository) {
-        this.usersRepository = usersRepository;
-    }
-
-    public UserControllerImpl(RegionController regionController, UserRepository userRepository) {
+    public UserControllerImpl(@Autowired RegionController regionController,
+                              @Autowired UserRepository userRepository) {
         this.regionController = regionController;
         this.usersRepository  = userRepository;
-    }
-
-    public void setRegionController(RegionController regionController) {
-        this.regionController = regionController;
     }
 
     public User addUser(String firstName, String lastName, String regionName) {

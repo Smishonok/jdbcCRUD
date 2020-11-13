@@ -9,12 +9,6 @@ public abstract class PostRequestHandler extends RequestHandler {
     protected final String USER_ID = "user_id";
     protected final String ALL     = "all";
 
-    public PostRequestHandler(){}
-
-    public PostRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
-    }
-
     @Override
     public void getHelp() {
         String helpInfo = "Invalid request type, please check request type and try again.\n" +

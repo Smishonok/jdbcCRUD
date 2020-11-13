@@ -1,15 +1,14 @@
 package com.valentinNikolaev.jdbcCrud.view.postsRequestsHandlers;
 
 import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class HelpPostRequestHandler extends PostRequestHandler {
 
-    public HelpPostRequestHandler(){}
-
-    public HelpPostRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public HelpPostRequestHandler() {
     }
 
     @Override

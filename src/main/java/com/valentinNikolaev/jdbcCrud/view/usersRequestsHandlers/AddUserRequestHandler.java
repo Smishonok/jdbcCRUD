@@ -1,18 +1,22 @@
 package com.valentinNikolaev.jdbcCrud.view.usersRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
+import com.valentinNikolaev.jdbcCrud.controller.RegionController;
 import com.valentinNikolaev.jdbcCrud.controller.UserController;
 import com.valentinNikolaev.jdbcCrud.models.Role;
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class AddUserRequestHandler extends UserRequestHandler {
 
-    public AddUserRequestHandler() {}
+    private UserController userController;
 
-    public AddUserRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public AddUserRequestHandler(@Autowired RegionController regionController,
+                                  @Autowired UserController userController) {
+        super(regionController);
+        this.userController = userController;
     }
 
     @Override
@@ -55,7 +59,6 @@ public class AddUserRequestHandler extends UserRequestHandler {
         String regionName    = options.get(2);
 
         if (isRegionNameValid(regionName)) {
-            UserController userController = ControllersIocContainer.getUserController();
             userController.addUser(userFirstName, userLastName, regionName);
         } else {
             System.out.println(
@@ -85,7 +88,6 @@ public class AddUserRequestHandler extends UserRequestHandler {
         }
 
         if (isRegionNameValid(regionName) && isRoleNameValid(userRole)) {
-            UserController userController = ControllersIocContainer.getUserController();
             userController.addUser(userFirstName, userLastName, userRole, regionName);
         }
     }

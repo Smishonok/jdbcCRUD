@@ -2,15 +2,20 @@ package com.valentinNikolaev.jdbcCrud.controller;
 
 import com.valentinNikolaev.jdbcCrud.models.Region;
 import com.valentinNikolaev.jdbcCrud.repository.RegionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
+@Scope("singleton")
 public class RegionControllerImpl implements RegionController {
 
     private RegionRepository regionRepository;
 
-    public RegionControllerImpl(RegionRepository regionRepository)  {
+    public RegionControllerImpl(@Autowired RegionRepository regionRepository)  {
         this.regionRepository = regionRepository;
     }
 

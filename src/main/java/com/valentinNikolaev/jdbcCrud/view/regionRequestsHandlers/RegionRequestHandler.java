@@ -9,12 +9,6 @@ public abstract class RegionRequestHandler extends RequestHandler {
     protected final String NAME = "name";
     protected final String ALL = "all";
 
-    public RegionRequestHandler(){}
-
-    public RegionRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
-    }
-
     @Override
     public void getHelp() {
         String helpInfo = "Invalid request type, please check request type and try again.\n" +

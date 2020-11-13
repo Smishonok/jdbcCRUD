@@ -1,28 +1,25 @@
 package com.valentinNikolaev.jdbcCrud.view.postsRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
 import com.valentinNikolaev.jdbcCrud.controller.PostController;
 import com.valentinNikolaev.jdbcCrud.models.Post;
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class ChangePostRequestHandler extends PostRequestHandler {
 
     private PostController postController;
 
-    public ChangePostRequestHandler() {
-    }
-
-    public ChangePostRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public ChangePostRequestHandler(@Autowired PostController postController) {
+        this.postController = postController;
     }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
         if (CHANGE.equals(action)) {
-            this.postController = ControllersIocContainer.getPostController();
             processRequest(options);
         } else {
             getNextHandler(action, options);

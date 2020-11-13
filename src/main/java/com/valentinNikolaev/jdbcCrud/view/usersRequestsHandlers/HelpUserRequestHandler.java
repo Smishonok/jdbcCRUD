@@ -1,15 +1,17 @@
 package com.valentinNikolaev.jdbcCrud.view.usersRequestsHandlers;
 
+import com.valentinNikolaev.jdbcCrud.controller.RegionController;
 import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class HelpUserRequestHandler extends UserRequestHandler {
 
-    public HelpUserRequestHandler(){}
-
-    public HelpUserRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public HelpUserRequestHandler(@Autowired RegionController regionController) {
+        super(regionController);
     }
 
     @Override

@@ -1,25 +1,26 @@
 package com.valentinNikolaev.jdbcCrud.view.usersRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
+import com.valentinNikolaev.jdbcCrud.controller.RegionController;
 import com.valentinNikolaev.jdbcCrud.controller.UserController;
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class RemoveUserRequestsHandler extends UserRequestHandler {
 
     private UserController userController;
 
-    public RemoveUserRequestsHandler(){}
-
-    public RemoveUserRequestsHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public RemoveUserRequestsHandler(@Autowired RegionController regionController,
+                                     @Autowired UserController userController) {
+        super(regionController);
+        this.userController = userController;
     }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
         if (REMOVE.equals(action)) {
-            userController = ControllersIocContainer.getUserController();
             String       optionType     = options.get(0);
             List<String> requestOptions = getOptionsWithOutFirst(options);
             removeUser(optionType, requestOptions);
@@ -74,5 +75,4 @@ public class RemoveUserRequestsHandler extends UserRequestHandler {
                         "\t2: all - remove all users\n";
         System.out.println(helpInfo);
     }
-
 }

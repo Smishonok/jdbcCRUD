@@ -1,13 +1,19 @@
 package com.valentinNikolaev.jdbcCrud.view.usersRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
 import com.valentinNikolaev.jdbcCrud.controller.RegionController;
 import com.valentinNikolaev.jdbcCrud.models.Role;
 import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 public abstract class UserRequestHandler extends RequestHandler {
+
+    private RegionController regionController;
+
+    public UserRequestHandler(@Autowired RegionController regionController) {
+        this.regionController = regionController;
+    }
 
     //Parameters of the method
     protected final String ID         = "id";
@@ -16,12 +22,6 @@ public abstract class UserRequestHandler extends RequestHandler {
     protected final String LAST_NAME  = "name.last";
     protected final String ROLE       = "role";
     protected final String REGION     = "region";
-
-    public UserRequestHandler() {}
-
-    public UserRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
-    }
 
     @Override
     public void getHelp() {
@@ -37,8 +37,7 @@ public abstract class UserRequestHandler extends RequestHandler {
         System.out.println(helpInfo);
     }
 
-    protected boolean isRegionNameValid(String regionName) throws ClassNotFoundException {
-        RegionController regionController = ControllersIocContainer.getRegionController();
+    protected boolean isRegionNameValid(String regionName) {
         return regionController.getRegionByName(regionName).isPresent();
     }
 

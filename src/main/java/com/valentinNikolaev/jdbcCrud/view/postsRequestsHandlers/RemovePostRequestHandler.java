@@ -1,26 +1,23 @@
 package com.valentinNikolaev.jdbcCrud.view.postsRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
 import com.valentinNikolaev.jdbcCrud.controller.PostController;
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class RemovePostRequestHandler extends PostRequestHandler {
 
     private PostController postController;
 
-    public RemovePostRequestHandler() {
-    }
-
-    public RemovePostRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public RemovePostRequestHandler(@Autowired PostController postController) {
+        this.postController = postController;
     }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
         if (REMOVE.equals(action)) {
-            this.postController = ControllersIocContainer.getPostController();
             processRequest(options);
         } else {
             getNextHandler(action, options);

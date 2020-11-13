@@ -1,25 +1,26 @@
 package com.valentinNikolaev.jdbcCrud.view.usersRequestsHandlers;
 
-import com.valentinNikolaev.jdbcCrud.controller.ControllersIocContainer;
+import com.valentinNikolaev.jdbcCrud.controller.RegionController;
 import com.valentinNikolaev.jdbcCrud.controller.UserController;
-import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class ChangeUserRequestHandler extends UserRequestHandler {
 
     private UserController userController;
 
-    public ChangeUserRequestHandler(){}
-
-    public ChangeUserRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public ChangeUserRequestHandler(@Autowired RegionController regionController,
+                                    @Autowired UserController userController) {
+        super(regionController);
+        this.userController = userController;
     }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
         if (CHANGE.equals(action)) {
-            userController = ControllersIocContainer.getUserController();
             String       requestType    = options.get(0);
             List<String> requestOptions = getOptionsWithOutFirst(options);
             processRequest(requestType, requestOptions);

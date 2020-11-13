@@ -3,26 +3,38 @@ package com.valentinNikolaev.jdbcCrud.repository.jdbcImpl;
 import com.valentinNikolaev.jdbcCrud.models.Region;
 import com.valentinNikolaev.jdbcCrud.repository.RegionRepository;
 import com.valentinNikolaev.jdbcCrud.utils.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+@Component
+@Scope("singleton")
 public class RegionRepositoryImpl implements RegionRepository {
+
+    private ConnectionFactory connectionFactory;
+
+    public RegionRepositoryImpl(@Autowired ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
     @Override
     public Region add(Region region) {
         Function<Connection, Region> transaction = connection->{
             Region regionFromDb = null;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "insert into jdbccrud.regions(name) values (?)");
+                        "insert into regions(name) values (?)");
                 preparedStatement.setString(1, region.getName());
                 preparedStatement.executeUpdate();
                 connection.commit();
 
                 preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.regions where name =?");
+                        "select * from regions where name =?");
                 preparedStatement.setString(1, region.getName());
                 ResultSet resultSet = preparedStatement.executeQuery();
                 if (resultSet.next()) {
@@ -42,7 +54,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             }
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     @Override
@@ -51,7 +63,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             Region region = null;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.regions where id=?");
+                        "select * from regions where id=?");
                 preparedStatement.setLong(1, id);
                 preparedStatement.execute();
                 ResultSet resultSet = preparedStatement.getResultSet();
@@ -71,7 +83,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             }
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     @Override
@@ -79,7 +91,7 @@ public class RegionRepositoryImpl implements RegionRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "update jdbccrud.regions set name=? where id=?");
+                        "update regions set name=? where id=?");
                 preparedStatement.setString(1, region.getName());
                 preparedStatement.setLong(2, region.getId());
                 preparedStatement.executeUpdate();
@@ -90,7 +102,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         return get(region.getId());
     }
@@ -100,7 +112,7 @@ public class RegionRepositoryImpl implements RegionRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "delete from jdbccrud.regions where id=?");
+                        "delete from regions where id=?");
                 preparedStatement.setLong(1, id);
                 preparedStatement.executeUpdate();
                 connection.commit();
@@ -110,7 +122,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         return ! isContains(id);
     }
@@ -121,7 +133,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             List<Region> regionList = new ArrayList<>();
             try {
                 Statement statement = connection.createStatement();
-                statement.execute("select * from jdbccrud.regions");
+                statement.execute("select * from regions");
                 ResultSet resultSet = statement.getResultSet();
 
                 while (resultSet.next()) {
@@ -137,7 +149,7 @@ public class RegionRepositoryImpl implements RegionRepository {
         };
 
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 
     @Override
@@ -146,7 +158,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             try {
                 Statement statement = connection.createStatement();
                 statement.executeUpdate("set foreign_key_checks = 0");
-                statement.executeUpdate("truncate jdbccrud.regions");
+                statement.executeUpdate("truncate regions");
                 statement.executeUpdate("set foreign_key_checks =1");
                 statement.close();
                 connection.commit();
@@ -156,13 +168,13 @@ public class RegionRepositoryImpl implements RegionRepository {
             return null;
         };
 
-        ConnectionFactory.doTransaction(transaction);
+        connectionFactory.doTransaction(transaction);
 
         Function<Connection, Boolean> checkingTransaction = connection->{
             boolean isResultSetEmpty = false;
             try {
                 Statement statement = connection.createStatement();
-                statement.execute("select * from jdbccrud.regions");
+                statement.execute("select * from regions");
                 ResultSet resultSet = statement.getResultSet();
                 isResultSetEmpty = ! resultSet.next();
                 resultSet.close();
@@ -172,7 +184,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             return isResultSetEmpty;
         };
 
-        return ConnectionFactory.doTransaction(checkingTransaction);
+        return connectionFactory.doTransaction(checkingTransaction);
     }
 
     @Override
@@ -181,7 +193,7 @@ public class RegionRepositoryImpl implements RegionRepository {
             boolean isResultSetNotEmpty = false;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.regions where id=?");
+                        "select * from regions where id=?");
                 preparedStatement.setLong(1, id);
                 preparedStatement.execute();
                 ResultSet resultSet = preparedStatement.getResultSet();
@@ -194,6 +206,6 @@ public class RegionRepositoryImpl implements RegionRepository {
             return isResultSetNotEmpty;
         };
 
-        return ConnectionFactory.doTransaction(transaction);
+        return connectionFactory.doTransaction(transaction);
     }
 }

@@ -3,27 +3,27 @@ package com.valentinNikolaev.jdbcCrud.view.postsRequestsHandlers;
 import com.valentinNikolaev.jdbcCrud.controller.*;
 import com.valentinNikolaev.jdbcCrud.models.User;
 import com.valentinNikolaev.jdbcCrud.view.RequestHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class AddPostRequestHandler extends PostRequestHandler {
 
     private PostController postController;
     private UserController userController;
 
-    public AddPostRequestHandler() {
-    }
-
-    public AddPostRequestHandler(RequestHandler nextRequestHandler) {
-        super(nextRequestHandler);
+    public AddPostRequestHandler(@Autowired PostController postController,
+                                 @Autowired UserController userController) {
+        this.postController = postController;
+        this.userController = userController;
     }
 
     @Override
     public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
         if (ADD.equals(action)) {
-            this.postController = ControllersIocContainer.getPostController();
-            this.userController = ControllersIocContainer.getUserController();
             processRequest(options);
         } else {
             getNextHandler(action, options);

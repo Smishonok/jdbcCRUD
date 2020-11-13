@@ -1,6 +1,6 @@
 package com.valentinNikolaev.jdbcCrud.utils;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,11 +11,19 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 
+@Component
 public class ConnectionFactory {
 
-    private static Properties properties;
+    private Properties properties;
 
-    public static <T> T doTransaction(Function<Connection, T> transaction) {
+    public ConnectionFactory(Properties properties) {
+        this.properties = properties;
+    }
+
+    public ConnectionFactory() {
+    }
+
+    public <T> T doTransaction(Function<Connection, T> transaction) {
         T result = null;
         try (Connection connection = getConnection()) {
             result = transaction.apply(connection);
@@ -25,7 +33,7 @@ public class ConnectionFactory {
         return result;
     }
 
-    private static Connection getConnection() throws IOException, SQLException {
+    private Connection getConnection() throws IOException, SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
@@ -44,7 +52,7 @@ public class ConnectionFactory {
         return connection;
     }
 
-    private static void initiateConnectionProperties() throws IOException {
+    private void initiateConnectionProperties() throws IOException {
         if (properties == null) {
             properties = new Properties();
             InputStream inputStream = Objects.requireNonNull(ConnectionFactory.class
