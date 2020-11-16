@@ -16,16 +16,16 @@ import java.util.List;
 import java.util.function.Function;
 
 @Component
-@Scope("singleton")
+@Scope ("singleton")
 public class UserRepositoryImpl implements UserRepository {
 
     private ConnectionFactory connectionFactory;
-    private PostRepository postRepository;
+    private PostRepository    postRepository;
 
     public UserRepositoryImpl(@Autowired ConnectionFactory connectionFactory,
                               @Autowired PostRepository postRepository) {
         this.connectionFactory = connectionFactory;
-        this.postRepository = postRepository;
+        this.postRepository    = postRepository;
     }
 
     @Override
@@ -33,8 +33,8 @@ public class UserRepositoryImpl implements UserRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "insert into users (first_name, last_name, region_id, role)" +
-                        "VALUES " + "(?,?,?,?)");
+                        "insert into users (first_name, last_name, region_id, role)" + "VALUES " +
+                                "(?,?,?,?)");
                 preparedStatement.setString(1, entity.getFirstName());
                 preparedStatement.setString(2, entity.getLastName());
                 preparedStatement.setLong(3, entity.getRegion().getId());
@@ -57,8 +57,7 @@ public class UserRepositoryImpl implements UserRepository {
             Long userId = null;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select id from " + "users " + "where first_name=? and " +
-                        "last_name=?");
+                        "select id from " + "users " + "where first_name=? and " + "last_name=?");
                 preparedStatement.setString(1, firstName);
                 preparedStatement.setString(2, lastName);
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -74,8 +73,8 @@ public class UserRepositoryImpl implements UserRepository {
                 return userId;
             } else {
                 throw new IllegalArgumentException("Illegal user first name or last name. User " +
-                                                   "with requested first name and last name is " +
-                                                   "not exists in data base.");
+                                                           "with requested first name and last name is " +
+                                                           "not exists in data base.");
             }
         };
 
@@ -89,14 +88,13 @@ public class UserRepositoryImpl implements UserRepository {
             try {
                 PreparedStatement userPreparedStatement = connection.prepareStatement(
                         "select first_name,last_name,region_id,regions.name,role from " +
-                        "users left join jdbccrud" +
-                        ".regions on users.region_id = regions.id where users.id=?");
+                                "users left join regions on users.region_id = regions.id where users.id=?");
                 userPreparedStatement.setLong(1, id);
                 ResultSet userResultSet = userPreparedStatement.executeQuery();
 
                 if (userResultSet.next()) {
                     String firstName = userResultSet.getString(1);
-                    String lastName = userResultSet.getString(2);
+                    String lastName  = userResultSet.getString(2);
                     Region region = new Region(userResultSet.getLong(3),
                                                userResultSet.getString(4));
                     Role role = Role.valueOf(userResultSet.getString(5));
@@ -113,9 +111,9 @@ public class UserRepositoryImpl implements UserRepository {
             if (userFromDB != null) {
                 return userFromDB;
             } else {
-                throw new IllegalArgumentException("Illegal user first name or last name. User " +
-                                                   "with requested first name and last name is " +
-                                                   "not exists in data base.");
+                throw new IllegalArgumentException(
+                        "Illegal user id. User with requested id is " +
+                                "not exists in data base.");
             }
         };
 
@@ -128,7 +126,7 @@ public class UserRepositoryImpl implements UserRepository {
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
                         "update users set first_name=?,last_name=?,region_id=?,role=? " +
-                        "where id=?");
+                                "where id=?");
                 preparedStatement.setString(1, user.getFirstName());
                 preparedStatement.setString(2, user.getLastName());
                 preparedStatement.setLong(3, user.getRegion().getId());
@@ -173,18 +171,17 @@ public class UserRepositoryImpl implements UserRepository {
             List<User> users = new ArrayList<>();
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select users.id, first_name, last_name, region_id,name, role " +
-                        "from" +
-                        " users left join regions on users.region_id = regions.id");
+                        "select users.id, first_name, last_name, region_id,name, role " + "from" +
+                                " users left join regions on users.region_id = regions.id");
                 ResultSet resultSet = preparedStatement.executeQuery();
 
                 while (resultSet.next()) {
-                    long id = resultSet.getLong("id");
-                    String firstName = resultSet.getString("first_Name");
-                    String lastName = resultSet.getString("last_Name");
-                    long regionId = resultSet.getLong("region_id");
+                    long   id         = resultSet.getLong("id");
+                    String firstName  = resultSet.getString("first_Name");
+                    String lastName   = resultSet.getString("last_Name");
+                    long   regionId   = resultSet.getLong("region_id");
                     String regionName = resultSet.getString("name");
-                    String role = resultSet.getString("role");
+                    String role       = resultSet.getString("role");
 
                     User user = new User(id, firstName, lastName, new Region(regionId, regionName),
                                          Role.valueOf(role));
@@ -206,9 +203,12 @@ public class UserRepositoryImpl implements UserRepository {
     public boolean removeAll() {
         Function<Connection, Void> transaction = connection->{
             try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "truncate users");
-                preparedStatement.executeUpdate();
+                Statement statement = connection.createStatement();
+                statement.executeUpdate("set foreign_key_checks = 0");
+                statement.executeUpdate("truncate users");
+                statement.executeUpdate("truncate posts");
+                statement.executeUpdate("truncate regions");
+                statement.executeUpdate("set foreign_key_checks =1");
                 connection.commit();
             } catch (SQLException e) {
                 e.printStackTrace();

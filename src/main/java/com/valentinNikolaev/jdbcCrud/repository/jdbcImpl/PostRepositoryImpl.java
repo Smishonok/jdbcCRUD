@@ -31,7 +31,7 @@ public class PostRepositoryImpl implements PostRepository {
             List<Post> posts = new ArrayList<>();
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.posts where user_id=?");
+                        "select * from posts where user_id=?");
                 preparedStatement.setLong(1, userId);
                 ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -62,7 +62,7 @@ public class PostRepositoryImpl implements PostRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "delete from jdbccrud.posts where user_id=?");
+                        "delete from posts where user_id=?");
                 preparedStatement.setLong(1, userId);
                 preparedStatement.executeUpdate();
                 connection.commit();
@@ -76,7 +76,7 @@ public class PostRepositoryImpl implements PostRepository {
             boolean isResultSetEmpty = false;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.posts where user_id=?");
+                        "select * from posts where user_id=?");
                 preparedStatement.setLong(1, userId);
                 ResultSet resultSet = preparedStatement.getResultSet();
                 isResultSetEmpty = ! resultSet.next();
@@ -96,7 +96,7 @@ public class PostRepositoryImpl implements PostRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "insert into jdbccrud.posts(user_id, content, creating_date, " +
+                        "insert into posts(user_id, content, creating_date, " +
                         "updating_date) " + "values (?,?,?,?)");
                 preparedStatement.setLong(1, post.getUserId());
                 preparedStatement.setString(2, post.getContent());
@@ -125,7 +125,7 @@ public class PostRepositoryImpl implements PostRepository {
             Post postFromDB = null;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.posts where user_id=? and content=? and " +
+                        "select * from posts where user_id=? and content=? and " +
                         "creating_date=?");
                 preparedStatement.setLong(1, userId);
                 preparedStatement.setString(2, content);
@@ -167,7 +167,7 @@ public class PostRepositoryImpl implements PostRepository {
             Post postFromDB = null;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.posts where posts.id=?");
+                        "select * from posts where posts.id=?");
                 preparedStatement.setLong(1, id);
                 ResultSet resultSet = preparedStatement.getResultSet();
                 if (resultSet.next()) {
@@ -193,7 +193,7 @@ public class PostRepositoryImpl implements PostRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "update jdbccrud.posts set user_id=?,content=?,creating_date=?, " +
+                        "update posts set user_id=?,content=?,creating_date=?, " +
                         "updating_date=? where id=?");
                 preparedStatement.setLong(1, post.getUserId());
                 preparedStatement.setString(2, post.getContent());
@@ -224,7 +224,7 @@ public class PostRepositoryImpl implements PostRepository {
             List<Post> postsList = new ArrayList<>();
             try {
                 Statement statement = connection.createStatement();
-                statement.execute("select * from jdbccrud.posts");
+                statement.execute("select * from posts");
                 ResultSet resultSet = statement.getResultSet();
 
                 while (resultSet.next()) {
@@ -246,7 +246,7 @@ public class PostRepositoryImpl implements PostRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 Statement statement = connection.createStatement();
-                statement.execute("truncate jdbccrud.posts");
+                statement.execute("truncate posts");
                 connection.commit();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -260,7 +260,7 @@ public class PostRepositoryImpl implements PostRepository {
             boolean isResultSetEmpty = false;
             try {
                 Statement statement = connection.createStatement();
-                statement.execute("select * from jdbccrud.posts");
+                statement.execute("select * from posts");
                 ResultSet resultSet = statement.getResultSet();
                 isResultSetEmpty = ! resultSet.next();
                 resultSet.close();
@@ -279,7 +279,7 @@ public class PostRepositoryImpl implements PostRepository {
             boolean isResultSetEmpty = false;
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from jdbccrud.posts where id=?");
+                        "select * from posts where id=?");
                 preparedStatement.setLong(1, id);
                 ResultSet resultSet = preparedStatement.getResultSet();
                 isResultSetEmpty = ! resultSet.next();

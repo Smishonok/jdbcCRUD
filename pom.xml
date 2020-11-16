@@ -28,7 +28,6 @@
         </profile>
         <profile>
             <id>prod</id>
-
             <properties>
                 <flyway.configFiles>src/main/resources/myFlyWay.properties</flyway.configFiles>
             </properties>

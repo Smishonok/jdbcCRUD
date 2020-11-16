@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("Tests of connection factory")
 class ConnectionFactoryTest {
 
-    private ConnectionFactory connectionFactory = new TestConnectionFactory().getConnectionFactory();
+    private ConnectionFactory connectionFactory = new TestConnection().getConnectionFactory();
 
     @Test
     @DisplayName("When try to make transaction connection is exist")
