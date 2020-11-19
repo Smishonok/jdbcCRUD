@@ -65,20 +65,24 @@ public class User {
         return posts;
     }
 
-    public void setFirstName(String firstName) {
+    public User setFirstName(String firstName) {
         this.firstName = firstName;
+        return this;
     }
 
-    public void setLastName(String lastName) {
+    public User setLastName(String lastName) {
         this.lastName = lastName;
+        return this;
     }
 
-    public void setRegion(Region region) {
+    public User setRegion(Region region) {
         this.region = region;
+        return this;
     }
 
-    public void changeUserRole(String role) {
+    public User changeUserRole(String role) {
         this.role = Role.valueOf(role);
+        return this;
     }
 
     @Override

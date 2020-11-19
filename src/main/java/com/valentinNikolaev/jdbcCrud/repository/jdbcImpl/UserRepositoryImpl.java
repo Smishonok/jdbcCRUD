@@ -206,8 +206,6 @@ public class UserRepositoryImpl implements UserRepository {
                 Statement statement = connection.createStatement();
                 statement.executeUpdate("set foreign_key_checks = 0");
                 statement.executeUpdate("truncate users");
-                statement.executeUpdate("truncate posts");
-                statement.executeUpdate("truncate regions");
                 statement.executeUpdate("set foreign_key_checks =1");
                 connection.commit();
             } catch (SQLException e) {

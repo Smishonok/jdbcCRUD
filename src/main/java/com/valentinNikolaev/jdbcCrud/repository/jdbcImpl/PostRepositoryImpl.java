@@ -26,72 +26,6 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> getPostsByUserId(Long userId) {
-        Function<Connection, List<Post>> transaction = connection->{
-            List<Post> posts = new ArrayList<>();
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from posts where user_id=?");
-                preparedStatement.setLong(1, userId);
-                ResultSet resultSet = preparedStatement.executeQuery();
-
-                while (resultSet.next()) {
-                    long id = resultSet.getLong("id");
-                    long user_id = resultSet.getLong("user_id");
-                    String content = resultSet.getString("content");
-                    LocalDateTime createdDate = LocalDateTime.ofEpochSecond(
-                            resultSet.getLong("created_date"), 0, ZoneOffset.UTC);
-                    LocalDateTime updateDate = LocalDateTime.ofEpochSecond(
-                            resultSet.getLong("update_date"), 0, ZoneOffset.UTC);
-
-                    posts.add(new Post(id, user_id, content, createdDate, updateDate));
-                }
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            return posts;
-        };
-
-        return connectionFactory.doTransaction(transaction);
-    }
-
-    @Override
-    public boolean removePostsByUserId(Long userId) {
-        Function<Connection, Void> transaction = connection->{
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "delete from posts where user_id=?");
-                preparedStatement.setLong(1, userId);
-                preparedStatement.executeUpdate();
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return null;
-        };
-
-        Function<Connection, Boolean> checkRequestTransaction = connection->{
-            boolean isResultSetEmpty = false;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from posts where user_id=?");
-                preparedStatement.setLong(1, userId);
-                ResultSet resultSet = preparedStatement.getResultSet();
-                isResultSetEmpty = ! resultSet.next();
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            return isResultSetEmpty;
-        };
-
-        return connectionFactory.doTransaction(checkRequestTransaction);
-    }
-
-    @Override
     public Post add(Post post) {
         Function<Connection, Void> transaction = connection->{
             try {
@@ -119,48 +53,6 @@ public class PostRepositoryImpl implements PostRepository {
                                              post.getDateOfCreation());
     }
 
-    private Post getPostByUserIdContentAndDate(long userId, String content,
-                                               LocalDateTime dateOfCreation) {
-        Function<Connection, Post> transaction = connection->{
-            Post postFromDB = null;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from posts where user_id=? and content=? and " +
-                        "creating_date=?");
-                preparedStatement.setLong(1, userId);
-                preparedStatement.setString(2, content);
-                preparedStatement.setLong(3, dateOfCreation.toEpochSecond(ZoneOffset.UTC));
-                ResultSet resultSet = preparedStatement.getResultSet();
-                if (resultSet.next()) {
-                    postFromDB = getPostFromResultSet(resultSet);
-                }
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            if (postFromDB != null) {
-                return postFromDB;
-            } else {
-                throw new IllegalArgumentException("Illegal post parameters, post with requested " +
-                                                   "parameters is not exists in date base.");
-            }
-        };
-
-        return connectionFactory.doTransaction(transaction);
-    }
-
-    private Post getPostFromResultSet(ResultSet resultSet) throws SQLException {
-        long id = resultSet.getLong("id");
-        long userIdFromDB = resultSet.getLong("user_id");
-        String contentFromDB = resultSet.getString("content");
-        LocalDateTime creatingDate = LocalDateTime.ofEpochSecond(resultSet.getLong("creating_date"),
-                                                                 0, ZoneOffset.UTC);
-        LocalDateTime updatingDate = LocalDateTime.ofEpochSecond(resultSet.getLong("updating_date"),
-                                                                 0, ZoneOffset.UTC);
-
-        return new Post(id, userIdFromDB, contentFromDB, creatingDate, updatingDate);
-    }
-
     @Override
     public Post get(Long id) {
         Function<Connection, Post> transaction = connection->{
@@ -169,7 +61,7 @@ public class PostRepositoryImpl implements PostRepository {
                 PreparedStatement preparedStatement = connection.prepareStatement(
                         "select * from posts where posts.id=?");
                 preparedStatement.setLong(1, id);
-                ResultSet resultSet = preparedStatement.getResultSet();
+                ResultSet resultSet = preparedStatement.executeQuery();
                 if (resultSet.next()) {
                     postFromDB = getPostFromResultSet(resultSet);
                 }
@@ -181,8 +73,32 @@ public class PostRepositoryImpl implements PostRepository {
                 return postFromDB;
             } else {
                 throw new IllegalArgumentException(
-                        "Post with id " + id + " is not exists in " + "data base");
+                        "Illegal post id. Post with id " + id + " is not exists in " + "data base");
             }
+        };
+
+        return connectionFactory.doTransaction(transaction);
+    }
+
+    @Override
+    public List<Post> getPostsByUserId(Long userId) {
+        Function<Connection, List<Post>> transaction = connection->{
+            List<Post> posts = new ArrayList<>();
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "select * from posts where user_id=?");
+                preparedStatement.setLong(1, userId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                while (resultSet.next()) {
+                    posts.add(getPostFromResultSet(resultSet));
+                }
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            return posts;
         };
 
         return connectionFactory.doTransaction(transaction);
@@ -215,7 +131,58 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public boolean remove(Long id) {
-        return false;
+        Function<Connection, Void> transaction = connection->{
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "delete from posts where id=?");
+                preparedStatement.setLong(1, id);
+                preparedStatement.executeUpdate();
+                connection.commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return null;
+        };
+
+        connectionFactory.doTransaction(transaction);
+
+        return isContains(id);
+    }
+
+    @Override
+    public boolean removePostsByUserId(Long userId) {
+        Function<Connection, Void> transaction = connection->{
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "delete from posts where user_id=?");
+                preparedStatement.setLong(1, userId);
+                preparedStatement.executeUpdate();
+                connection.commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return null;
+        };
+
+        connectionFactory.doTransaction(transaction);
+
+        Function<Connection, Boolean> checkRequestTransaction = connection->{
+            boolean isResultSetEmpty = false;
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "select * from posts where user_id=?");
+                preparedStatement.setLong(1, userId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                isResultSetEmpty = ! resultSet.next();
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            return isResultSetEmpty;
+        };
+
+        return connectionFactory.doTransaction(checkRequestTransaction);
     }
 
     @Override
@@ -246,7 +213,9 @@ public class PostRepositoryImpl implements PostRepository {
         Function<Connection, Void> transaction = connection->{
             try {
                 Statement statement = connection.createStatement();
-                statement.execute("truncate posts");
+                statement.executeUpdate("set foreign_key_checks = 0");
+                statement.executeUpdate("truncate posts");
+                statement.executeUpdate("set foreign_key_checks =1");
                 connection.commit();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -281,7 +250,7 @@ public class PostRepositoryImpl implements PostRepository {
                 PreparedStatement preparedStatement = connection.prepareStatement(
                         "select * from posts where id=?");
                 preparedStatement.setLong(1, id);
-                ResultSet resultSet = preparedStatement.getResultSet();
+                ResultSet resultSet = preparedStatement.executeQuery();
                 isResultSetEmpty = ! resultSet.next();
                 resultSet.close();
             } catch (SQLException e) {
@@ -292,5 +261,47 @@ public class PostRepositoryImpl implements PostRepository {
         };
 
         return connectionFactory.doTransaction(transaction);
+    }
+
+    private Post getPostByUserIdContentAndDate(long userId, String content,
+                                               LocalDateTime dateOfCreation) {
+        Function<Connection, Post> transaction = connection->{
+            Post postFromDB = null;
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "select * from posts where user_id=? and content=? and " +
+                        "creating_date=?");
+                preparedStatement.setLong(1, userId);
+                preparedStatement.setString(2, content);
+                preparedStatement.setLong(3, dateOfCreation.toEpochSecond(ZoneOffset.UTC));
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    postFromDB = getPostFromResultSet(resultSet);
+                }
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            if (postFromDB != null) {
+                return postFromDB;
+            } else {
+                throw new IllegalArgumentException("Illegal post parameters, post with requested " +
+                                                   "parameters is not exists in date base.");
+            }
+        };
+
+        return connectionFactory.doTransaction(transaction);
+    }
+
+    private Post getPostFromResultSet(ResultSet resultSet) throws SQLException {
+        long id = resultSet.getLong("id");
+        long userIdFromDB = resultSet.getLong("user_id");
+        String contentFromDB = resultSet.getString("content");
+        LocalDateTime creatingDate = LocalDateTime.ofEpochSecond(resultSet.getLong("creating_date"),
+                                                                 0, ZoneOffset.UTC);
+        LocalDateTime updatingDate = LocalDateTime.ofEpochSecond(resultSet.getLong("updating_date"),
+                                                                 0, ZoneOffset.UTC);
+
+        return new Post(id, userIdFromDB, contentFromDB, creatingDate, updatingDate);
     }
 }

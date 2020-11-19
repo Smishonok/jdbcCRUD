@@ -1,5 +1,6 @@
 package com.valentinNikolaev.jdbcCrud.repository.jdbcImpl;
 
+import com.valentinNikolaev.jdbcCrud.models.Post;
 import com.valentinNikolaev.jdbcCrud.models.Region;
 import com.valentinNikolaev.jdbcCrud.models.Role;
 import com.valentinNikolaev.jdbcCrud.models.User;
@@ -15,6 +16,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -23,13 +25,11 @@ import static org.assertj.core.api.Assertions.*;
 @DisplayName ("Tests for user DAO class based on JDBC")
 class UserRepositoryImplTest {
 
-    private TestConnection   testConnection   = new TestConnection();
-    private PostRepository   postRepository   = new PostRepositoryImpl(
+    private TestConnection testConnection = new TestConnection();
+    private PostRepository postRepository = new PostRepositoryImpl(
             testConnection.getConnectionFactory());
-    private UserRepository   userRepository   = new UserRepositoryImpl(
+    private UserRepository userRepository = new UserRepositoryImpl(
             testConnection.getConnectionFactory(), postRepository);
-    private RegionRepository regionRepository = new RegionRepositoryImpl(
-            testConnection.getConnectionFactory());
 
     @BeforeAll
     public void cleanDataBaseBeforeAllTest() {
@@ -41,62 +41,6 @@ class UserRepositoryImplTest {
         testConnection.cleanDataBase();
     }
 
-    private User getUserFromDb(String firstName, String lastName) {
-        Function<Connection, User> transaction = connection->{
-            User user = null;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from users left join regions on users.region_Id=regions.id " +
-                                "where first_name=? and last_name=?");
-                preparedStatement.setString(1, firstName);
-                preparedStatement.setString(2, lastName);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    user = getUser(resultSet);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return user;
-        };
-
-        return testConnection.doTransaction(transaction);
-    }
-
-    private List<User> getAllUsersFromDB() {
-
-        Function<Connection, List<User>> transaction = connection->{
-            List<User> users = new ArrayList<>();
-
-            try {
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery(
-                        "select * from users left join regions on users.region_id " +
-                                "= regions.id");
-                while (resultSet.next()) {
-                    users.add(getUser(resultSet));
-                }
-                resultSet.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-            return users;
-        };
-
-        return testConnection.doTransaction(transaction);
-    }
-
-    private User getUser(ResultSet resultSet) throws SQLException {
-        long   id            = resultSet.getLong("users.id");
-        String userFirstName = resultSet.getString("first_name");
-        String userLastName  = resultSet.getString("last_name");
-        Long   regionId      = resultSet.getLong("regions.id");
-        String regionName    = resultSet.getString("regions.name");
-        Role   userRole      = Role.valueOf(resultSet.getString("role"));
-        return new User(id, userFirstName, userLastName, new Region(regionId, regionName),
-                        userRole);
-    }
-
     @Nested
     @DisplayName ("Tests for the add method")
     class addMethodTests {
@@ -106,14 +50,13 @@ class UserRepositoryImplTest {
         @DisplayName ("When user added into database, then database contains user")
         public void whenAddNewUserThenUserExistInDataBase() {
             //given
-            Region region       = new Region(1, "TestRegion");
-            User   expectedUser = new User(1, "UserName", "UserLastName", region, Role.ADMIN);
+            Region region = testConnection.addRegionIntoDB("TestRegion");
+            User expectedUser = new User(1, "UserName", "UserLastName", region, Role.ADMIN);
 
             //when
-            regionRepository.add(region);
             userRepository.add(expectedUser);
-            User actualUser = getUserFromDb(expectedUser.getFirstName(),
-                                            expectedUser.getLastName());
+            User actualUser = testConnection.getUserFromDb(expectedUser.getFirstName(),
+                                                           expectedUser.getLastName());
 
             //then
             assertThat(actualUser)
@@ -127,16 +70,17 @@ class UserRepositoryImplTest {
         @DisplayName ("When add user, method return added user")
         public void addUserReturnAddedUser() {
             //given
-            Region region       = new Region(1, "TestRegion");
-            User   expectedUser = new User(1, "UserName", "UserLastName", region, Role.MODERATOR);
+            Region region = testConnection.getRegionFromDB("TestRegion");
+            User expectedUser = new User(1, "UserName", "UserLastName", region, Role.MODERATOR);
 
             //when
-            regionRepository.add(region);
             User actualUser = userRepository.add(expectedUser);
 
             //then
-            assertThat(actualUser).usingRecursiveComparison().ignoringFields("id").isEqualTo(
-                    actualUser);
+            assertThat(actualUser)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id")
+                    .isEqualTo(actualUser);
 
         }
     }
@@ -149,19 +93,15 @@ class UserRepositoryImplTest {
         @DisplayName ("If user exist in DB then it will be returned")
         public void returnAddedUser() {
             //given
-            Region region       = new Region(1, "TestRegion");
-            User   expectedUser = new User(1, "TestName", "TestLastName", region, Role.ADMIN);
-            regionRepository.add(region);
-            userRepository.add(expectedUser);
-            Long userId = getUserFromDb(expectedUser.getFirstName(),
-                                        expectedUser.getLastName()).getId();
+            Region region = testConnection.addRegionIntoDB("TestRegion");
+            User expectedUser = testConnection.addUserIntoDB("TestName", "TestLastName",
+                                                             region.getId(), Role.ADMIN);
 
             //when
-            User actualUser = userRepository.get(userId);
+            User actualUser = userRepository.get(expectedUser.getId());
 
             //then
-            assertThat(actualUser).usingRecursiveComparison().ignoringFields("id").isEqualTo(
-                    expectedUser);
+            assertThat(actualUser).isEqualTo(expectedUser);
         }
 
         @Test
@@ -173,8 +113,35 @@ class UserRepositoryImplTest {
             Throwable throwable = catchThrowable(()->userRepository.get(1L));
 
             //then
-            assertThat(throwable).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
-                    "Illegal user id");
+            assertThat(throwable)
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Illegal user id");
+        }
+
+        @Test
+        @DisplayName ("When user has posts then return user with list of all posts")
+        public void whenUserHasPostsThenUserReturnWithAllPosts() {
+            //given
+            Region region = testConnection.addRegionIntoDB("TestRegion");
+            User testUser = testConnection.addUserIntoDB("TestName", "TestLastName", region.getId(),
+                                                         Role.ADMIN);
+            List<Post> expectedUserPosts = List
+                    .of(new Post(1, testUser.getId(), "TestContent1"),
+                        new Post(2, testUser.getId(), "Test content2"),
+                        new Post(3, testUser.getId(), "Test Content3"))
+                    .stream()
+                    .map(testConnection::addPostIntoDB)
+                    .collect(Collectors.toList());
+
+            //when
+            User actualUser = userRepository.get(testUser.getId());
+            List<Post> actualUserPosts = actualUser.getPosts();
+
+            //then
+            assertThat(actualUserPosts)
+                    .usingRecursiveComparison()
+                    .ignoringCollectionOrder()
+                    .isEqualTo(expectedUserPosts);
         }
     }
 
@@ -186,21 +153,19 @@ class UserRepositoryImplTest {
         @DisplayName ("When user changed then data base return changed user")
         public void whenUserChangedThenDBReturnChangedUser() {
             //given
-            Region region             = new Region(1, "TestRegion");
-            User   userBeforeChanging = new User(1, "TestName", "TestLastName", region, Role.USER);
-            regionRepository.add(region);
-            userRepository.add(userBeforeChanging);
+            Region region = testConnection.addRegionIntoDB("TestRegion");
+            User userBeforeChanging = testConnection.addUserIntoDB("UserName", "UserLastName",
+                                                                   region.getId(), Role.ADMIN);
 
             //when
-            User expectedUser = getUserFromDb(userBeforeChanging.getFirstName(),
-                                              userBeforeChanging.getLastName());
-            expectedUser.changeUserRole("ADMIN");
-            expectedUser.setLastName("ChangedLastName");
+            User expectedUser = userBeforeChanging
+                    .changeUserRole("ADMIN")
+                    .setLastName("ChangedLastName");
             userRepository.change(expectedUser);
 
             //then
-            User actualUser = getUserFromDb(expectedUser.getFirstName(),
-                                            expectedUser.getLastName());
+            User actualUser = testConnection.getUserFromDb(expectedUser.getFirstName(),
+                                                           expectedUser.getLastName());
             assertThat(actualUser).isEqualTo(expectedUser);
         }
     }
@@ -213,24 +178,27 @@ class UserRepositoryImplTest {
         @DisplayName ("When user removed from DB then it not exist")
         public void whenRemoveUserThenUserIsNotExistInDB() {
             //given
-            Region region = new Region(1, "TestRegion");
-            regionRepository.add(region);
-            Stream.of(new User(1, "TestName1", "TestLastName1", region, Role.MODERATOR),
-                      new User(2, "TestName2", "TestLastName2", region, Role.USER),
-                      new User(3, "TestName3", "TestLastName3", region, Role.USER)).forEach(
-                    userRepository::add);
+            Region region = testConnection.addRegionIntoDB("TestRegion");
+            Stream<User> userStream = Stream.of(
+                    new User(1, "TestName1", "TestLastName1", region, Role.MODERATOR),
+                    new User(2, "TestName2", "TestLastName2", region, Role.USER),
+                    new User(3, "TestName3", "TestLastName3", region, Role.USER));
+
+            userStream.forEach(testConnection::addUserIntoDB);
 
             //when
-            User userFromDataBase = getUserFromDb("TestName1", "TestLastName1");
+            User userFromDataBase = testConnection.getUserFromDb("TestName1", "TestLastName1");
             userRepository.remove(userFromDataBase.getId());
 
             //then
-            List<User> actualUserSet = getAllUsersFromDB();
+            List<User> actualUserSet = testConnection.getAllUsersFromDB();
             Assertions.assertAll(()->{
-                assertThat(actualUserSet).extracting(User::getFirstName).doesNotContain(
-                        "TestName1");
-                assertThat(actualUserSet).extracting(User::getFirstName).containsOnly("TestName2",
-                                                                                      "TestName3");
+                assertThat(actualUserSet)
+                        .extracting(User::getFirstName)
+                        .doesNotContain("TestName1");
+                assertThat(actualUserSet)
+                        .extracting(User::getFirstName)
+                        .containsOnly("TestName2", "TestName3");
             });
         }
     }
@@ -243,21 +211,26 @@ class UserRepositoryImplTest {
         @DisplayName ("When get all users from database then return list with all users")
         public void whenGetAllThenReturnListOfUsers() {
             //given
-            Region region = new Region(1, "TestRegion");
-            regionRepository.add(region);
+            Region region = testConnection.addRegionIntoDB("TestRegion");
 
-            List<User> expectedListOfUser = List.of(
-                    new User(1, "Name1", "LastName1", region, Role.USER),
-                    new User(2, "Name2", "LastName2", region, Role.MODERATOR),
-                    new User(3, "Name3", "LastName3", region, Role.ADMIN));
-            expectedListOfUser.forEach(userRepository::add);
+            List<User> testUsers = List.of(new User(1, "Name1", "LastName1", region, Role.USER),
+                                           new User(2, "Name2", "LastName2", region,
+                                                    Role.MODERATOR),
+                                           new User(3, "Name3", "LastName3", region, Role.ADMIN));
+
+            List<User> expectedUsersList = testUsers
+                    .stream()
+                    .map(testConnection::addUserIntoDB)
+                    .collect(Collectors.toList());
 
             //when
             List<User> actualUserList = userRepository.getAll();
 
             //then
-            assertThat(actualUserList).usingRecursiveComparison().ignoringFields("id").isEqualTo(
-                    expectedListOfUser);
+            assertThat(actualUserList)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id")
+                    .isEqualTo(expectedUsersList);
         }
 
         @Test
@@ -279,18 +252,19 @@ class UserRepositoryImplTest {
         @DisplayName ("When remove all then database return empty list")
         public void whenRemoveAllThenDataBaseIsEmpty() {
             //given
-            Region region = new Region(1, "TestRegion");
-            regionRepository.add(region);
+            Region region = testConnection.addRegionIntoDB("TestRegion");
 
-            List<User> expectedListOfUser = List.of(
-                    new User(1, "Name1", "LastName1", region, Role.USER),
-                    new User(2, "Name2", "LastName2", region, Role.MODERATOR),
-                    new User(3, "Name3", "LastName3", region, Role.ADMIN));
-            expectedListOfUser.forEach(userRepository::add);
+            List<User> testUsers = List.of(new User(1, "Name1", "LastName1", region, Role.USER),
+                                           new User(2, "Name2", "LastName2", region,
+                                                    Role.MODERATOR),
+                                           new User(3, "Name3", "LastName3", region, Role.ADMIN));
+
+            testUsers.forEach(testConnection::addUserIntoDB);
+
 
             //when
             userRepository.removeAll();
-            List<User> actualUserList = getAllUsersFromDB();
+            List<User> actualUserList = testConnection.getAllUsersFromDB();
 
             //then
             assertThat(actualUserList).isEmpty();
@@ -305,21 +279,19 @@ class UserRepositoryImplTest {
         @DisplayName ("When user exist in database, then return true")
         public void whenUserExistInDBThenReturnTrue() {
             //given
-            Region region = new Region(1, "TestRegion");
-            User   user   = new User(1, "TestName", "TestLastName", region, Role.ADMIN);
-            regionRepository.add(region);
-            userRepository.add(user);
+            Region region = testConnection.addRegionIntoDB("TestRegion");
+            User expectedUser = testConnection.addUserIntoDB("TestName", "TestLastName",
+                                                             region.getId(), Role.ADMIN);
 
             //when
-            User userFromDB = getUserFromDb(user.getFirstName(), user.getLastName());
-            boolean actualStatus = userRepository.isContains(userFromDB.getId());
+            boolean actualStatus = userRepository.isContains(expectedUser.getId());
 
             //then
             assertThat(actualStatus).isTrue();
         }
 
         @Test
-        @DisplayName("When user is not exist in database, then return false")
+        @DisplayName ("When user is not exist in database, then return false")
         public void whenUserIsNotExistReturnFalse() {
             //when
             boolean actualStatus = userRepository.isContains(125l);

@@ -1,0 +1,1 @@
+alter table posts drop key user_id;
