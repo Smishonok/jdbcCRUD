@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +60,7 @@ class PostControllerImplTest {
 
             Post expectedPost = new Post(3, 1, "Expected post");
             Mockito
-                    .when(postRepositoryStub.add()
+                    .when(postRepositoryStub.add(Mockito.any(Post.class)))
                     .thenReturn(expectedPost);
 
             //when
@@ -68,8 +69,62 @@ class PostControllerImplTest {
             //then
             assertThat(actualPost).isEqualTo(expectedPost);
         }
-
     }
 
+
+    @Nested
+    class TestsForGetPostMethod{
+
+        @Test
+        @DisplayName("When get post which exist in database then return post")
+        public void whenGetPostWhichExistInDbThenReturnPost() {
+            //given
+            Post expectedPost = new Post(1l, 1, "Test content");
+            Mockito.when(postRepositoryStub.isContains(1l)).thenReturn(true);
+            Mockito.when(postRepositoryStub.get(1l)).thenReturn(expectedPost);
+
+            //when
+            Post actualPost = postController.getPost("1").get();
+
+            //then
+            assertThat(actualPost).isEqualTo(expectedPost);
+        }
+
+        @Test
+        @DisplayName("When get post which is not exist in database then return empty optional")
+        public void whenGetPostWhichNotExistInDbThenReturnEmptyOptional() {
+            //given
+            Optional<Post> expectedOptionalValue = Optional.empty();
+
+            //when
+            Optional<Post> actualValue = postController.getPost("1");
+
+            //then
+            assertThat(actualValue).isEqualTo(expectedOptionalValue);
+        }
+    }
+
+    @Nested
+    class TestsForGetAllMethod{
+
+        @Test
+        @DisplayName("When getAll posts from repository then return all posts")
+        public void whenGetAllThenReturnAllPostFromRepository(){
+            //given
+            List<Post> expectedPosts = List.of(new Post(1l, 1l, "TestPost1"),
+                                               new Post(2l, 1l, "TestPost2"),
+                                               new Post(3l, 2l, "Post from another user"));
+            Mockito.when(postRepositoryStub.getAll()).thenReturn(expectedPosts);
+
+            //when
+            List<Post> actualPosts = postController.getAllPostsList();
+
+            //then
+            assertThat(actualPosts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(
+                    expectedPosts);
+        }
+
+
+    }
 
 }
