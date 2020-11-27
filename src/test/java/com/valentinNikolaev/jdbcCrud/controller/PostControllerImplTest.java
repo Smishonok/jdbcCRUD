@@ -123,8 +123,59 @@ class PostControllerImplTest {
             assertThat(actualPosts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(
                     expectedPosts);
         }
-
-
     }
 
+    @Nested
+    class TestsForGetPostByUserIdMethod{
+
+        @Test
+        @DisplayName("When get post by user id then return user posts only")
+        public void whenGetPostByUserIdThenReturnUserPostOnly() {
+            //given
+            List<Post> expectedPosts = List.of(new Post(1l, 1l, "TestPost1"),
+                                               new Post(2l, 1l, "TestPost2"),
+                                               new Post(3l, 1l, "One more post from user"));
+            Mockito.when(postRepositoryStub.getPostsByUserId(1l)).thenReturn(expectedPosts);
+
+            //when
+            List<Post> actualPosts = postController.getPostsByUserId("1");
+
+            //then
+            assertThat(actualPosts)
+                    .usingRecursiveComparison()
+                    .ignoringCollectionOrder()
+                    .isEqualTo(expectedPosts);
+        }
+
+        @Test
+        @DisplayName("When get list of post by user id and posts are not exist then return empty " +
+                     "list")
+        public void whenGetPostByUserIdAndPostsNotExistThenReturnEmptyList() {
+            //given
+            Mockito.when(postRepositoryStub.getPostsByUserId(1l)).thenReturn(new ArrayList<>());
+
+            //when
+            List<Post> actualPostList = postController.getPostsByUserId("1");
+
+            //then
+            assertThat(actualPostList).isEmpty();
+        }
+    }
+
+    @Nested
+    class TestsForChangePostMethod {
+
+        @Test
+        @DisplayName("When change post content then return changed post")
+        public void whenChangePostThenReturnChangedPost() {
+            //given
+            Post postBeforeChanging = new Post(1l, 1l, "Test post");
+            Mockito.when(postRepositoryStub.isContains(1l)).thenReturn(true);
+            Mockito.when(postRepositoryStub.get(1l)).thenReturn(postBeforeChanging);
+            postBeforeChanging.setContent("Changed test post");
+            Post expectedPost = postBeforeChanging;
+            Mockito.when(postRepositoryStub.change(expectedPost)).thenReturn(expectedPost);
+
+        }
+    }
 }

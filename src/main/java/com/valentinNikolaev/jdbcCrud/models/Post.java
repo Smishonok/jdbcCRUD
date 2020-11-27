@@ -1,13 +1,15 @@
 package com.valentinNikolaev.jdbcCrud.models;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 public class Post implements Comparable<Post> {
-    private long          id;
-    private long          userId;
-    private String        content;
+    private long id;
+    private long userId;
+    private String content;
     private LocalDateTime created;
     private LocalDateTime updated;
+    private Clock clock;
 
     public Post(long postId, long userId, String content) {
         this.id      = postId;
@@ -17,9 +19,10 @@ public class Post implements Comparable<Post> {
         this.updated = this.created;
     }
 
-    public Post(long id, long userId, String content, LocalDateTime created, LocalDateTime updated) {
+    public Post(long id, long userId, String content, LocalDateTime created,
+                LocalDateTime updated) {
         this.id      = id;
-        this.userId    = userId;
+        this.userId  = userId;
         this.content = content;
         this.created = created;
         this.updated = updated;
@@ -52,8 +55,7 @@ public class Post implements Comparable<Post> {
 
     @Override
     public int hashCode() {
-        int hash =
-                this.content.hashCode() + (int)userId + created.hashCode() + updated.hashCode();
+        int hash = this.content.hashCode() + (int) userId + created.hashCode() + updated.hashCode();
         return hash;
     }
 
@@ -72,7 +74,7 @@ public class Post implements Comparable<Post> {
         }
 
         Post comparingObj = (Post) obj;
-        return this.content.equals(comparingObj.content) && this.userId==comparingObj.getUserId();
+        return this.content.equals(comparingObj.content) && this.userId == comparingObj.getUserId();
     }
 
     public boolean equalsContent(Post post) {
@@ -87,6 +89,6 @@ public class Post implements Comparable<Post> {
     @Override
     public String toString() {
         return "Post{" + "id=" + id + ", userId=" + userId + ", content='" + content + '\'' +
-                ", created=" + created + ", updated=" + updated + '}';
+               ", created=" + created + ", updated=" + updated + '}';
     }
 }
