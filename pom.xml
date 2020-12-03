@@ -17,19 +17,30 @@
         <mysql.connector.version>8.0.22</mysql.connector.version>
         <spring.version>5.2.9.RELEASE</spring.version>
         <gson.version>2.8.6</gson.version>
+        <log4j.version>2.14.0</log4j.version>
     </properties>
 
     <profiles>
         <profile>
             <id>test</id>
+            <build>
+                <filters>
+                    <filter>src/main/resources/application-test.properties</filter>
+                </filters>
+            </build>
             <properties>
-                <flyway.configFiles>src/main/resources/myFlyWayTest.properties</flyway.configFiles>
+                <flyway.configFiles>application.properties</flyway.configFiles>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
+            <build>
+                <filters>
+                    <filter>src/main/resources/application-prod.properties</filter>
+                </filters>
+            </build>
             <properties>
-                <flyway.configFiles>src/main/resources/myFlyWay.properties</flyway.configFiles>
+                <flyway.configFiles>application.properties</flyway.configFiles>
             </properties>
         </profile>
     </profiles>
@@ -72,6 +83,16 @@
             <version>3.6.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -80,10 +101,8 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <excludes>
-                    <exclude>myFlyWay.properties</exclude>
-                    <exclude>myFlyWayTest.properties</exclude>
-                    <exclude>connectionProd.properties</exclude>
-                    <exclude>connectionTest.properties</exclude>
+                    <exclude>application-prod.properties</exclude>
+                    <exclude>application-test.properties</exclude>
                 </excludes>
             </resource>
         </resources>
@@ -104,7 +123,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.valentinNikolaev.jdbcCrud.Main</mainClass>
+                                    <mainClass>com.valentinnikolaev.jdbccrud.Main</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -143,7 +162,7 @@
                 <version>7.0.4</version>
                 <configuration>
                     <configFiles>
-                        <configFile>src/main/resources/myFlyWay.properties</configFile>
+                        <configFile>src/main/resources/application.properties</configFile>
                     </configFiles>
                 </configuration>
                 <executions>
@@ -155,7 +174,7 @@
                         </goals>
                         <configuration>
                             <configFiles>
-                                <configFile>src/main/resources/myFlyWayTest.properties</configFile>
+                                <configFile>src/main/resources/application-test.properties</configFile>
                             </configFiles>
                         </configuration>
                     </execution>
