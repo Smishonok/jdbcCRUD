@@ -6,9 +6,11 @@ import com.valentinnikolaev.jdbccrud.utils.jsonparser.JsonParser;
 import com.valentinnikolaev.jdbccrud.utils.jsonparser.JsonParserFactory;
 import com.valentinnikolaev.jdbccrud.utils.Constants;
 
+import javax.swing.text.html.Option;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class JsonPostRepositoryImpl implements PostRepository {
@@ -36,9 +38,9 @@ public class JsonPostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public Post get(Long aLong) {
+    public Optional<Post> get(Long aLong) {
         return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
-                post->post.getId() == aLong).findFirst().get();
+                post->post.getId() == aLong).findFirst();
     }
 
     @Override
@@ -48,7 +50,7 @@ public class JsonPostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public Post change(Post entity) {
+    public Optional<Post> change(Post entity) {
         String     repositoryData = FileService.getDataFromRepository(repositoryPath);
         List<Post> posts          = parser.parseList(repositoryData);
 
@@ -63,7 +65,7 @@ public class JsonPostRepositoryImpl implements PostRepository {
         FileService.writeDataIntoRepository(dataForWritingInRepo, repositoryPath);
 
         return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
-                post->post.getId() == entity.getId()).findFirst().get();
+                post->post.getId() == entity.getId()).findFirst();
     }
 
     @Override

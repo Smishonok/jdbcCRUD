@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class User {
-    private long   id;
+    private Long   id;
     private String firstName;
     private String lastName;
     private Region region;
@@ -13,7 +13,7 @@ public class User {
 
     private final Role DEFAULT_ROLE = Role.USER;
 
-    public User(long id, String firstName, String lastName, Region region) {
+    public User(Long id, String firstName, String lastName, Region region) {
         this.id        = id;
         this.firstName = firstName;
         this.lastName  = lastName;
@@ -22,7 +22,7 @@ public class User {
         posts          = new ArrayList<>();
     }
 
-    public User(long id, String firstName, String lastName, Region region, Role role) {
+    public User(Long id, String firstName, String lastName, Region region, Role role) {
         this.id        = id;
         this.firstName = firstName;
         this.lastName  = lastName;
@@ -31,7 +31,7 @@ public class User {
         posts          = new ArrayList<>();
     }
 
-    public User(long id, String firstName, String lastName, Region region, Role role,
+    public User(Long id, String firstName, String lastName, Region region, Role role,
                 List<Post> posts) {
         this.id        = id;
         this.firstName = firstName;
@@ -41,7 +41,7 @@ public class User {
         this.posts     = posts;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 

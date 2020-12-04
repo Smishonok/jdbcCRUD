@@ -3,15 +3,15 @@ package com.valentinnikolaev.jdbccrud.models;
 import java.util.Scanner;
 
 public class Region {
-    private long   id;
+    private Long   id;
     private String name;
 
-    public Region(long id, String name) {
+    public Region(Long id, String name) {
         this.id   = id;
         this.name = name;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -28,7 +28,7 @@ public class Region {
     }
 
     public static Region parse(String regionData) {
-        long id;
+        Long id;
         String name;
 
         Scanner scanner = new Scanner(regionData);

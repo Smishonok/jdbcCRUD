@@ -154,59 +154,24 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public boolean removeAll() {
-
-
-        Function<Connection, Void> transaction = connection->{
-            try {
-                Statement statement = connection.createStatement();
-                statement.executeUpdate("set foreign_key_checks = 0");
-                statement.executeUpdate("truncate posts");
-                statement.executeUpdate("set foreign_key_checks = 1");
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return null;
-        };
-
-        connectionFactory.doTransaction(transaction);
-
-        Function<Connection, Boolean> checkingTransaction = connection->{
-            boolean isResultSetEmpty = false;
-            try {
-                Statement statement = connection.createStatement();
-                statement.execute("select * from posts");
-                ResultSet resultSet = statement.getResultSet();
-                isResultSetEmpty = ! resultSet.next();
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return isResultSetEmpty;
-        };
-
-        return connectionFactory.doTransaction(checkingTransaction);
+        return ConnectionUtils.removeAllFromTable("posts");
     }
 
     @Override
     public boolean isContains(Long id) {
-        Function<Connection, Boolean> transaction = connection->{
-            boolean isResultSetEmpty = false;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from posts where id=?");
-                preparedStatement.setLong(1, id);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                isResultSetEmpty = ! resultSet.next();
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        boolean isResultSetEmpty = false;
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.SELECT_POST_BY_ID.toString());
+            preparedStatement.setLong(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            isResultSetEmpty = ! resultSet.next();
+            resultSet.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
 
             return isResultSetEmpty;
-        };
-
-        return connectionFactory.doTransaction(transaction);
     }
 
     private Post getPost(long userId, String content, LocalDateTime dateOfCreation) {

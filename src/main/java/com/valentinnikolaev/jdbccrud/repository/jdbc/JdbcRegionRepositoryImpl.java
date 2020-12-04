@@ -3,6 +3,10 @@ package com.valentinnikolaev.jdbccrud.repository.jdbc;
 import com.valentinnikolaev.jdbccrud.models.Region;
 import com.valentinnikolaev.jdbccrud.repository.RegionRepository;
 import com.valentinnikolaev.jdbccrud.utils.ConnectionFactory;
+import com.valentinnikolaev.jdbccrud.utils.ConnectionUtils;
+import com.valentinnikolaev.jdbccrud.utils.SQLQueries;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -10,185 +14,129 @@ import org.springframework.stereotype.Component;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 @Component
-@Scope("singleton")
+@Scope ("singleton")
 public class JdbcRegionRepositoryImpl implements RegionRepository {
 
-    private ConnectionFactory connectionFactory;
-
-    public JdbcRegionRepositoryImpl(@Autowired ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
-    }
+    private final Logger log = LogManager.getLogger();
 
     @Override
     public Region add(Region region) {
-        Function<Connection, Region> transaction = connection->{
-            Region regionFromDb = null;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "insert into regions(name) values (?)");
-                preparedStatement.setString(1, region.getName());
-                preparedStatement.executeUpdate();
-                connection.commit();
+        Region regionFromDb = null;
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.CREATE_REGION.toString());
+            preparedStatement.setString(1, region.getName());
+            preparedStatement.executeUpdate();
 
-                preparedStatement = connection.prepareStatement(
-                        "select * from regions where name =?");
-                preparedStatement.setString(1, region.getName());
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    regionFromDb = new Region(resultSet.getLong("id"), resultSet.getString("name"));
-                }
+            preparedStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.SELECT_REGION_BY_NAME.toString());
+            preparedStatement.setString(1, region.getName());
 
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                regionFromDb = new Region(resultSet.getLong("id"), resultSet.getString("name"));
+            }
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            log.error("Region can`t be added into database", e);
+        }
+
+        return regionFromDb;
+    }
+
+    @Override
+    public Optional<Region> get(Long id) {
+        Region region = null;
+        try {
+            PreparedStatement prepareStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.SELECT_REGION_BY_ID.toString());
+            prepareStatement.setLong(1, id);
+            ResultSet resultSet = prepareStatement.executeQuery();
+            if (resultSet.next()) {
+                region = new Region(id, resultSet.getString("name"));
                 resultSet.close();
-                preparedStatement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
+        } catch (SQLException e) {
+            log.error("Region can`t be loaded from database", e);
+        }
 
-            if (regionFromDb != null) {
-                return regionFromDb;
-            } else {
-                throw new IllegalArgumentException("Illegal region name.");
-            }
-        };
-
-        return connectionFactory.doTransaction(transaction);
+        return region == null
+               ? Optional.empty()
+               : Optional.of(region);
     }
 
     @Override
-    public Region get(Long id) {
-        Function<Connection, Region> transaction = connection->{
-            Region region = null;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from regions where id=?");
-                preparedStatement.setLong(1, id);
-                preparedStatement.execute();
-                ResultSet resultSet = preparedStatement.getResultSet();
-                if (resultSet.next()) {
-                    region = new Region(id, resultSet.getString("name"));
-                    resultSet.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            if (region != null) {
-                return region;
-            } else {
-                throw new IllegalArgumentException(
-                        "Region with id " + id + " is not exists in " + "data base");
-            }
-        };
-
-        return connectionFactory.doTransaction(transaction);
-    }
-
-    @Override
-    public Region change(Region region) {
-        Function<Connection, Void> transaction = connection->{
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "update regions set name=? where id=?");
-                preparedStatement.setString(1, region.getName());
-                preparedStatement.setLong(2, region.getId());
-                preparedStatement.executeUpdate();
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return null;
-        };
-
-        connectionFactory.doTransaction(transaction);
+    public Optional<Region> change(Region region) {
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.UPDATE_REGION.toString());
+            preparedStatement.setString(1, region.getName());
+            preparedStatement.setLong(2, region.getId());
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Region {} can`t be updated", region, e);
+        }
 
         return get(region.getId());
     }
 
     @Override
     public boolean remove(Long id) {
-        Function<Connection, Void> transaction = connection->{
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "delete from regions where id=?");
-                preparedStatement.setLong(1, id);
-                preparedStatement.executeUpdate();
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return null;
-        };
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.REMOVE_REGION.toString());
+            preparedStatement.setLong(1, id);
+            preparedStatement.executeUpdate();
 
-        connectionFactory.doTransaction(transaction);
+        } catch (SQLException e) {
+            log.error("Region with id {} can`t be removed", id, e);
+        }
 
         return ! isContains(id);
     }
 
     @Override
     public List<Region> getAll() {
-        Function<Connection, List<Region>> transaction = connection->{
-            List<Region> regionList = new ArrayList<>();
-            try {
-                Statement statement = connection.createStatement();
-                statement.execute("select * from regions");
-                ResultSet resultSet = statement.getResultSet();
+        List<Region> regionList = new ArrayList<>();
+        try {
+            Statement  statement = ConnectionUtils.getStatement();
+            ResultSet resultSet = statement.executeQuery(
+                    SQLQueries.SELECT_REGION.toString());
 
-                while (resultSet.next()) {
-                    long id = resultSet.getLong("id");
-                    String name = resultSet.getString("name");
-                    regionList.add(new Region(id, name));
-                }
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            while (resultSet.next()) {
+                long   id   = resultSet.getLong("id");
+                String name = resultSet.getString("name");
+                regionList.add(new Region(id, name));
             }
-            return regionList;
-        };
+            resultSet.close();
+        } catch (SQLException e) {
+            log.error("Regions can`t be loaded from database",e);
+        }
 
-
-        return connectionFactory.doTransaction(transaction);
+        return regionList;
     }
 
     @Override
     public boolean removeAll() {
-        Function<Connection, Void> transaction = connection->{
-            try {
-                Statement statement = connection.createStatement();
-                statement.executeUpdate("set foreign_key_checks = 0");
-                statement.executeUpdate("truncate regions");
-                statement.executeUpdate("set foreign_key_checks =1");
-                statement.close();
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return null;
-        };
-
-        connectionFactory.doTransaction(transaction);
-
-        Function<Connection, Boolean> checkingTransaction = connection->{
-            boolean isResultSetEmpty = false;
-            try {
-                Statement statement = connection.createStatement();
-                statement.execute("select * from regions");
-                ResultSet resultSet = statement.getResultSet();
-                isResultSetEmpty = ! resultSet.next();
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return isResultSetEmpty;
-        };
-
-        return connectionFactory.doTransaction(checkingTransaction);
+        return ConnectionUtils.removeAllFromTable("regions");
     }
 
     @Override
     public boolean isContains(Long id) {
+
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.SELECT_REGION_BY_ID.toString());
+        } catch (SQLException e) {
+            log.error("Region with id {} can`t be loaded", id, e);
+        }
+
+
         Function<Connection, Boolean> transaction = connection->{
             boolean isResultSetNotEmpty = false;
             try {

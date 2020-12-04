@@ -4,14 +4,14 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 
 public class Post {
-    private long id;
-    private long userId;
+    private Long id;
+    private Long userId;
     private String content;
     private LocalDateTime created;
     private LocalDateTime updated;
     private Clock clock;
 
-    public Post(long id, long userId, String content, LocalDateTime created,
+    public Post(Long id, Long userId, String content, LocalDateTime created,
                 LocalDateTime updated) {
         this.id      = id;
         this.userId  = userId;
@@ -20,7 +20,7 @@ public class Post {
         this.updated = updated;
     }
 
-    public Post(long id, long userId, String content, Clock clock) {
+    public Post(Long id, Long userId, String content, Clock clock) {
         this.id      = id;
         this.userId  = userId;
         this.content = content;
@@ -29,11 +29,11 @@ public class Post {
         this.updated = created;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public long getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
@@ -56,7 +56,7 @@ public class Post {
 
     @Override
     public int hashCode() {
-        int hash = this.content.hashCode() + (int) userId + created.hashCode() + updated.hashCode();
+        int hash = this.content.hashCode() + userId.intValue() + created.hashCode() + updated.hashCode();
         return hash;
     }
 
