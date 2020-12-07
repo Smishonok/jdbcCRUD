@@ -128,32 +128,17 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
 
     @Override
     public boolean isContains(Long id) {
-
+        boolean isResultSetNotEmpty = false;
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
                     SQLQueries.SELECT_REGION_BY_ID.toString());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            isResultSetNotEmpty = resultSet.next();
+            resultSet.close();
         } catch (SQLException e) {
             log.error("Region with id {} can`t be loaded", id, e);
         }
 
-
-        Function<Connection, Boolean> transaction = connection->{
-            boolean isResultSetNotEmpty = false;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from regions where id=?");
-                preparedStatement.setLong(1, id);
-                preparedStatement.execute();
-                ResultSet resultSet = preparedStatement.getResultSet();
-                isResultSetNotEmpty = resultSet.next();
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            return isResultSetNotEmpty;
-        };
-
-        return connectionFactory.doTransaction(transaction);
+        return isResultSetNotEmpty;
     }
 }

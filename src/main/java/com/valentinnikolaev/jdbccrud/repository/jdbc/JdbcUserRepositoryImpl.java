@@ -6,6 +6,8 @@ import com.valentinnikolaev.jdbccrud.models.User;
 import com.valentinnikolaev.jdbccrud.repository.PostRepository;
 import com.valentinnikolaev.jdbccrud.repository.UserRepository;
 import com.valentinnikolaev.jdbccrud.utils.ConnectionFactory;
+import com.valentinnikolaev.jdbccrud.utils.ConnectionUtils;
+import com.valentinnikolaev.jdbccrud.utils.SQLQueries;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,14 @@ public class JdbcUserRepositoryImpl implements UserRepository {
 
     @Override
     public User add(User entity) {
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+                    SQLQueries.CREATE_USER.toString());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
         Function<Connection, Void> transaction = connection->{
             try {
                 PreparedStatement preparedStatement = connection.prepareStatement(
