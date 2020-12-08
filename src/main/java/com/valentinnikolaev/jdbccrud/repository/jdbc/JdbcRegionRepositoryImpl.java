@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.swing.text.html.Option;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +25,8 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
     private final Logger log = LogManager.getLogger();
 
     @Override
-    public Region add(Region region) {
-        Region regionFromDb = null;
+    public Optional<Region> add(Region region) {
+        Optional<Region> regionFromDb = Optional.empty();
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
                     SQLQueries.CREATE_REGION.toString());
@@ -38,7 +39,8 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                regionFromDb = new Region(resultSet.getLong("id"), resultSet.getString("name"));
+                regionFromDb = Optional.of(
+                        new Region(resultSet.getLong("id"), resultSet.getString("name")));
             }
             resultSet.close();
             preparedStatement.close();
@@ -104,9 +106,8 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
     public List<Region> getAll() {
         List<Region> regionList = new ArrayList<>();
         try {
-            Statement  statement = ConnectionUtils.getStatement();
-            ResultSet resultSet = statement.executeQuery(
-                    SQLQueries.SELECT_REGION.toString());
+            Statement statement = ConnectionUtils.getStatement();
+            ResultSet resultSet = statement.executeQuery(SQLQueries.SELECT_REGION.toString());
 
             while (resultSet.next()) {
                 long   id   = resultSet.getLong("id");
@@ -115,7 +116,7 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
             }
             resultSet.close();
         } catch (SQLException e) {
-            log.error("Regions can`t be loaded from database",e);
+            log.error("Regions can`t be loaded from database", e);
         }
 
         return regionList;

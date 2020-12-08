@@ -14,27 +14,20 @@ import org.springframework.context.annotation.*;
 public class JdbcDaoBeansConfig {
 
     @Bean
-    @Description ("Create jdbc connection factory")
-    @Scope ("singleton")
-    public ConnectionFactory connectionFactory() {
-        return new ConnectionFactory();
-    }
-
-    @Bean
     @Scope("singleton")
     public UserRepository userRepository() {
-        return new JdbcUserRepositoryImpl(connectionFactory(), postRepository());
+        return new JdbcUserRepositoryImpl( postRepository());
     }
 
     @Bean
     @Scope("singleton")
     public PostRepository postRepository() {
-        return new JdbcPostRepositoryImpl(connectionFactory());
+        return new JdbcPostRepositoryImpl();
     }
 
     @Bean
     @Scope("singleton")
     public RegionRepository regionRepository() {
-        return new JdbcRegionRepositoryImpl(connectionFactory());
+        return new JdbcRegionRepositoryImpl();
     }
 }

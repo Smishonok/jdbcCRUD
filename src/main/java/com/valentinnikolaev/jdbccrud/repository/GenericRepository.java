@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface GenericRepository<T, ID> {
 
-    T add(T entity);
+    Optional<T> add(T entity);
 
     Optional<T> get(ID id);
 
