@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-@Scope("singleton")
+@Scope ("singleton")
 public class UserController {
 
     private UserRepository usersRepository;
@@ -25,25 +25,33 @@ public class UserController {
         this.usersRepository  = userRepository;
     }
 
-    public User addUser(String firstName, String lastName, String regionName) {
-        long userId = getLastUserId() + 1;
-        Region region = regionController.getRegionByName(regionName).get();
-        User user = this.usersRepository.add(new User(userId, firstName, lastName, region));
-        return user;
+    public void addUser(String firstName, String lastName, String regionName) {
+        addUser(firstName, lastName, "USER", regionName);
     }
 
-    public User addUser(String firstName, String lastName, String roleName, String regionName) {
+    public void addUser(String firstName, String lastName, String roleName, String regionName) {
+        Optional<Region> regionOptional = regionController.getRegionByName(regionName);
+        if (regionOptional.isEmpty()) {
+            System.out.printf("Error: region with name %1$s is not exist in database", regionName);
+            return;
+        }
+
         long userId = getLastUserId() + 1;
-        Region region = regionController.getRegionByName(regionName).get();
-        Role role = Role.valueOf(roleName);
-        User user = this.usersRepository.add(new User(userId, firstName, lastName, region, role));
-        return user;
+        Optional<User> userOptional = usersRepository.add(
+                new User(userId, firstName, lastName, regionOptional.get(),
+                         Role.valueOf(roleName)));
+
+        if (userOptional.isEmpty()) {
+            System.out.println("User was not added into database");
+        } else {
+            System.out.println("User added into database successfully.");
+        }
     }
 
     public Optional<User> getUserById(String id) {
         long userId = Long.parseLong(id);
         Optional<User> user = this.usersRepository.isContains(userId)
-                              ? Optional.of(this.usersRepository.get(userId))
+                              ? usersRepository.get(userId)
                               : Optional.empty();
 
         return user;
@@ -87,6 +95,8 @@ public class UserController {
 
     public boolean changeUserFirstName(String userId, String newUserFirstName) {
         long id = Long.parseLong(userId);
+
+
         if (this.usersRepository.isContains(id)) {
             User user = this.usersRepository.get(id);
             user.setFirstName(newUserFirstName);

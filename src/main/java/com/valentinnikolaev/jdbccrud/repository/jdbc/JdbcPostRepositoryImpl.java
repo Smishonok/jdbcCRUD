@@ -23,7 +23,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     private final Logger log = LogManager.getLogger();
 
     @Override
-    public Post add(Post post) {
+    public Optional<Post> add(Post post) {
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.CREATE_POST.toString());
@@ -173,8 +173,8 @@ public class JdbcPostRepositoryImpl implements PostRepository {
             return isResultSetEmpty;
     }
 
-    private Post getPost(long userId, String content, LocalDateTime dateOfCreation) {
-        Post postFromDB = null;
+    private Optional<Post> getPost(long userId, String content, LocalDateTime dateOfCreation) {
+        Optional<Post> postFromDB = Optional.empty();
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POST_BY_USER_ID_CONTENT_DATE_OF_CREATION.toString());
@@ -183,7 +183,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
             preparedStatement.setLong(3, dateOfCreation.toEpochSecond(ZoneOffset.UTC));
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                postFromDB = getPostFromResultSet(resultSet);
+                postFromDB = Optional.of(getPostFromResultSet(resultSet));
             }
             resultSet.close();
         } catch (SQLException e) {
