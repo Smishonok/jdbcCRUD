@@ -16,7 +16,7 @@ public class ConnectionUtils {
         return ConnectionFactory.getConnection().createStatement();
     }
 
-    public static PreparedStatement getPrepareStatement(String sqlQuery) throws SQLException {
+    public static PreparedStatement getPreparedStatement(String sqlQuery) throws SQLException {
         return ConnectionFactory.getConnection().prepareStatement(sqlQuery);
     }
 
@@ -27,16 +27,16 @@ public class ConnectionUtils {
     public static boolean removeAllFromTable(String tableName) {
         boolean isResultSetEmpty = false;
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.FOREIGN_KEY_CHECKS.toString());
             preparedStatement.setInt(1, 0);
             preparedStatement.executeUpdate();
 
-            preparedStatement = ConnectionUtils.getPrepareStatement(SQLQueries.TRUNCATE.toString());
+            preparedStatement = ConnectionUtils.getPreparedStatement(SQLQueries.TRUNCATE.toString());
             preparedStatement.setString(1,tableName);
             preparedStatement.executeUpdate();
 
-            preparedStatement = ConnectionUtils.getPrepareStatement(
+            preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.FOREIGN_KEY_CHECKS.toString());
             preparedStatement.setInt(1, 1);
             preparedStatement.executeUpdate();

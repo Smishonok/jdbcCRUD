@@ -34,7 +34,7 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> add(User entity) {
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.CREATE_USER.toString());
             preparedStatement.setString(1, entity.getFirstName());
             preparedStatement.setString(2, entity.getLastName());
@@ -52,7 +52,7 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     private Optional<User> getUserByFirstAndLastName(String firstName, String lastName) {
         Optional<User> userFromDb = Optional.empty();
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_USER_BY_FIRST_NAME_AND_LAST_NAME.toString());
             preparedStatement.setString(1, firstName);
             preparedStatement.setString(2, lastName);
@@ -71,13 +71,13 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     }
 
     private Optional<User> getUserFromResultSet(ResultSet resultSet) throws SQLException {
-        long   userId        = resultSet.getLong("id");
+        long userId = resultSet.getLong("id");
         String userFirstName = resultSet.getString("first_name");
-        String userLastName  = resultSet.getString("last_name");
-        long   regionId      = resultSet.getLong("regions.id");
-        String regionName    = resultSet.getString("regions.name");
-        Region region        = new Region(regionId, regionName);
-        Role   userRole      = Role.valueOf(resultSet.getString("role"));
+        String userLastName = resultSet.getString("last_name");
+        long regionId = resultSet.getLong("regions.id");
+        String regionName = resultSet.getString("regions.name");
+        Region region = new Region(regionId, regionName);
+        Role userRole = Role.valueOf(resultSet.getString("role"));
         return Optional.of(new User(userId, userFirstName, userLastName, region, userRole));
     }
 
@@ -85,7 +85,7 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     public Optional<User> get(Long id) {
         Optional<User> userFromDb = Optional.empty();
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_USER_BY_ID.toString());
             preparedStatement.setLong(1, id);
             ResultSet userResultSet = preparedStatement.executeQuery();
@@ -103,7 +103,7 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> change(User user) {
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.UPDATE_USER.toString());
             preparedStatement.setString(1, user.getFirstName());
             preparedStatement.setString(2, user.getLastName());
@@ -121,9 +121,8 @@ public class JdbcUserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean remove(Long id) {
-
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.REMOVE_USER.toString());
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
@@ -137,89 +136,54 @@ public class JdbcUserRepositoryImpl implements UserRepository {
 
     @Override
     public List<User> getAll() {
-        Function<Connection, List<User>> transaction = connection->{
-            List<User> users = new ArrayList<>();
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select users.id, first_name, last_name, region_id,name, role " + "from" +
-                                " users left join regions on users.region_id = regions.id");
-                ResultSet resultSet = preparedStatement.executeQuery();
-
-                while (resultSet.next()) {
-                    long   id         = resultSet.getLong("id");
-                    String firstName  = resultSet.getString("first_Name");
-                    String lastName   = resultSet.getString("last_Name");
-                    long   regionId   = resultSet.getLong("region_id");
-                    String regionName = resultSet.getString("name");
-                    String role       = resultSet.getString("role");
-
-                    User user = new User(id, firstName, lastName, new Region(regionId, regionName),
-                                         Role.valueOf(role));
-
-                    user.getPosts().addAll(postRepository.getPostsByUserId(id));
-                    users.add(user);
-                }
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        List<User> users = new ArrayList<>();
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
+                    SQLQueries.SELECT_USER.toString());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                users.add(getUserFromResultSet(resultSet).get());
             }
-            return users;
-        };
-
-        return connectionFactory.doTransaction(transaction);
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            log.error("Users can`t be loaded from database", e);
+        }
+        return users;
     }
 
     @Override
     public boolean removeAll() {
-        Function<Connection, Void> transaction = connection->{
-            try {
-                Statement statement = connection.createStatement();
-                statement.executeUpdate("set foreign_key_checks = 0");
-                statement.executeUpdate("truncate users");
-                statement.executeUpdate("set foreign_key_checks =1");
-                connection.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return null;
-        };
+        ConnectionUtils.removeAllFromTable("users");
 
-        connectionFactory.doTransaction(transaction);
+        boolean isDatabaseEmpty = false;
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
+                    SQLQueries.SELECT_USER.toString());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            isDatabaseEmpty = ! resultSet.next();
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            log.error("Users can`t be loaded from database", e);
+        }
 
-        Function<Connection, Boolean> isAnyExist = connection->{
-            boolean isResultSetNotEmpty = false;
-            try {
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery("select *from users");
-                isResultSetNotEmpty = ! resultSet.next();
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
-            return isResultSetNotEmpty;
-        };
-
-        return connectionFactory.doTransaction(isAnyExist);
+        return isDatabaseEmpty;
     }
 
     @Override
     public boolean isContains(Long id) {
-        Function<Connection, Boolean> transaction = connection->{
-            boolean isContain = false;
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(
-                        "select * from users where id=?");
-                preparedStatement.setLong(1, id);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                isContain = resultSet.next();
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return isContain;
-        };
-
-        return connectionFactory.doTransaction(transaction);
+        boolean isContain = false;
+        try {
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
+                    SQLQueries.SELECT_POST_BY_ID.toString());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            isContain = resultSet.next();
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            log.error("User can`t be loaded from database", e);
+        }
+        return isContain;
     }
 }

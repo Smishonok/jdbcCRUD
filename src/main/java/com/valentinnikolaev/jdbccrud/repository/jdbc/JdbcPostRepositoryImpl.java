@@ -15,7 +15,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 @Component
 @Scope ("singleton")
@@ -26,7 +25,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     @Override
     public Post add(Post post) {
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.CREATE_POST.toString());
             preparedStatement.setLong(1, post.getUserId());
             preparedStatement.setString(2, post.getContent());
@@ -44,7 +43,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     public Optional<Post> get(Long id) {
         Post postFromDB = null;
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POST_BY_ID.toString());
             preparedStatement.setLong(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -66,7 +65,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     public List<Post> getPostsByUserId(Long userId) {
         List<Post> posts = new ArrayList<>();
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POSTS_BY_USER_ID.toString());
             preparedStatement.setLong(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -84,7 +83,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     @Override
     public Optional<Post> change(Post post) {
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.UPDATE_POST.toString());
             preparedStatement.setLong(1, post.getUserId());
             preparedStatement.setString(2, post.getContent());
@@ -102,7 +101,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     @Override
     public boolean remove(Long id) {
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.REMOVE_POST.toString());
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
@@ -117,12 +116,12 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     public boolean removePostsByUserId(Long userId) {
         boolean isResultSetEmpty = false;
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.REMOVE_POST_WITH_USER_ID.toString());
             preparedStatement.setLong(1, userId);
             preparedStatement.executeUpdate();
 
-            preparedStatement = ConnectionUtils.getPrepareStatement(
+            preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POSTS_BY_USER_ID.toString());
             preparedStatement.setLong(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -138,7 +137,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     public List<Post> getAll() {
         List<Post> postsList = new ArrayList<>();
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POST.toString());
             ResultSet resultSet = preparedStatement.getResultSet();
             while (resultSet.next()) {
@@ -161,7 +160,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     public boolean isContains(Long id) {
         boolean isResultSetEmpty = false;
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POST_BY_ID.toString());
             preparedStatement.setLong(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -177,7 +176,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     private Post getPost(long userId, String content, LocalDateTime dateOfCreation) {
         Post postFromDB = null;
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POST_BY_USER_ID_CONTENT_DATE_OF_CREATION.toString());
             preparedStatement.setLong(1, userId);
             preparedStatement.setString(2, content);

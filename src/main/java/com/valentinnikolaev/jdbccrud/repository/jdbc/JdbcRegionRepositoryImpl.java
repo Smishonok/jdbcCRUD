@@ -2,21 +2,17 @@ package com.valentinnikolaev.jdbccrud.repository.jdbc;
 
 import com.valentinnikolaev.jdbccrud.models.Region;
 import com.valentinnikolaev.jdbccrud.repository.RegionRepository;
-import com.valentinnikolaev.jdbccrud.utils.ConnectionFactory;
 import com.valentinnikolaev.jdbccrud.utils.ConnectionUtils;
 import com.valentinnikolaev.jdbccrud.utils.SQLQueries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.swing.text.html.Option;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 @Component
 @Scope ("singleton")
@@ -28,12 +24,12 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
     public Optional<Region> add(Region region) {
         Optional<Region> regionFromDb = Optional.empty();
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.CREATE_REGION.toString());
             preparedStatement.setString(1, region.getName());
             preparedStatement.executeUpdate();
 
-            preparedStatement = ConnectionUtils.getPrepareStatement(
+            preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_REGION_BY_NAME.toString());
             preparedStatement.setString(1, region.getName());
 
@@ -55,7 +51,7 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
     public Optional<Region> get(Long id) {
         Region region = null;
         try {
-            PreparedStatement prepareStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement prepareStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_REGION_BY_ID.toString());
             prepareStatement.setLong(1, id);
             ResultSet resultSet = prepareStatement.executeQuery();
@@ -75,7 +71,7 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
     @Override
     public Optional<Region> change(Region region) {
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.UPDATE_REGION.toString());
             preparedStatement.setString(1, region.getName());
             preparedStatement.setLong(2, region.getId());
@@ -90,7 +86,7 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
     @Override
     public boolean remove(Long id) {
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.REMOVE_REGION.toString());
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
@@ -131,7 +127,7 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
     public boolean isContains(Long id) {
         boolean isResultSetNotEmpty = false;
         try {
-            PreparedStatement preparedStatement = ConnectionUtils.getPrepareStatement(
+            PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_REGION_BY_ID.toString());
             ResultSet resultSet = preparedStatement.executeQuery();
             isResultSetNotEmpty = resultSet.next();
