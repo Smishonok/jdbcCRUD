@@ -4,19 +4,24 @@ import com.valentinnikolaev.jdbccrud.models.Region;
 import com.valentinnikolaev.jdbccrud.models.Role;
 import com.valentinnikolaev.jdbccrud.models.User;
 import com.valentinnikolaev.jdbccrud.repository.UserRepository;
+import com.valentinnikolaev.jdbccrud.utils.ConnectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.swing.text.html.Option;
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
 @Scope ("singleton")
 public class UserController {
 
-    private UserRepository usersRepository;
+    private UserRepository   usersRepository;
     private RegionController regionController;
 
     public UserController(@Autowired RegionController regionController,
@@ -62,78 +67,87 @@ public class UserController {
     }
 
     public List<User> getUsersWithFirstName(String firstName) {
-        return this.usersRepository
-                .getAll()
-                .stream()
-                .filter(user->user.getFirstName().equals(firstName))
-                .collect(Collectors.toList());
+        return this.usersRepository.getAll().stream().filter(
+                user->user.getFirstName().equals(firstName)).collect(Collectors.toList());
     }
 
     public List<User> getUsersWithLastName(String lastName) {
-        return this.usersRepository
-                .getAll()
-                .stream()
-                .filter(user->user.getLastName().equals(lastName))
-                .collect(Collectors.toList());
+        return this.usersRepository.getAll().stream().filter(
+                user->user.getLastName().equals(lastName)).collect(Collectors.toList());
     }
 
     public List<User> getUsersWithRole(String roleName) {
-        return this.usersRepository
-                .getAll()
-                .stream()
-                .filter(user->user.getRole().toString().equals(roleName))
-                .collect(Collectors.toList());
+        return this.usersRepository.getAll().stream().filter(
+                user->user.getRole().toString().equals(roleName)).collect(Collectors.toList());
     }
 
     public List<User> getUsersFrom(String regionName) {
-        return this.usersRepository
-                .getAll()
-                .stream()
-                .filter(user->user.getRegion().getName().equals(regionName))
-                .collect(Collectors.toList());
+        return this.usersRepository.getAll().stream().filter(
+                user->user.getRegion().getName().equals(regionName)).collect(Collectors.toList());
     }
 
     public boolean changeUserFirstName(String userId, String newUserFirstName) {
-        long id = Long.parseLong(userId);
-
-
-        if (this.usersRepository.isContains(id)) {
-            User user = this.usersRepository.get(id);
+        Function<User, Boolean> userParamChangingFunction = user->{
             user.setFirstName(newUserFirstName);
-            this.usersRepository.change(user);
-        }
-        return newUserFirstName.equals(this.usersRepository.get(id).getFirstName());
+            usersRepository.change(user);
+            return usersRepository.get(user.getId()).get().getFirstName().equals(newUserFirstName);
+        };
+
+        return changeUserParam(userId, userParamChangingFunction);
     }
 
     public boolean changeUserLastName(String userId, String newUserLastName) {
-        long id = Long.parseLong(userId);
-        if (this.usersRepository.isContains(id)) {
-            User user = this.usersRepository.get(id);
+        Function<User, Boolean> userParamChangingFunction = user->{
             user.setLastName(newUserLastName);
-            this.usersRepository.change(user);
-        }
-        return newUserLastName.equals(this.usersRepository.get(id).getLastName());
+            usersRepository.change(user);
+            return usersRepository.get(user.getId()).get().getLastName().equals(newUserLastName);
+        };
+
+        return changeUserParam(userId, userParamChangingFunction);
     }
 
     public boolean changeUserRole(String userId, String newUserRole) {
-        long id = Long.parseLong(userId);
-        if (this.usersRepository.isContains(id)) {
-            User user = this.usersRepository.get(id);
+        Function<User, Boolean> userParamChangingFunction = user->{
             user.changeUserRole(newUserRole);
-            this.usersRepository.change(user);
-        }
-        return newUserRole.equals(this.usersRepository.get(id).getRole().toString());
+            usersRepository.change(user);
+            return usersRepository.get(user.getId()).get().getRole().toString().equals(newUserRole);
+        };
+
+        return changeUserParam(userId, userParamChangingFunction);
     }
 
     public boolean changeUserRegion(String userId, String regionName) {
-        long id = Long.parseLong(userId);
-        Region region = regionController.getRegionByName(regionName).get();
-        if (this.usersRepository.isContains(id)) {
-            User user = this.usersRepository.get(id);
-            user.setRegion(region);
-            this.usersRepository.change(user);
+        Function<User, Boolean> userParamChangingFunction = user->{
+            Optional<Region> regionOptional = regionController.getRegionByName(regionName);
+
+            if (regionOptional.isPresent()) {
+                user.setRegion(regionOptional.get());
+                usersRepository.change(user);
+                return usersRepository.get(user.getId()).get().getRegion().equals(
+                        regionOptional.get());
+            } else {
+                System.out.printf("Region with name: %1$s is not exist in database. Please, check" +
+                                          " region name or add region with name %1$s into " +
+                                          "database before changing user parameters.",regionName);
+                return false;
+            }
+        };
+
+        return changeUserParam(userId,userParamChangingFunction);
+    }
+
+    private boolean changeUserParam(String userId, Function<User, Boolean> changingFunction) {
+        long           id             = Long.parseLong(userId);
+        boolean        isParamChanged = false;
+        Optional<User> userOptional   = usersRepository.get(id);
+
+        if (userOptional.isPresent()) {
+            isParamChanged = changingFunction.apply(userOptional.get());
+        } else {
+            System.out.printf("User with id: %1$d is not exist in database", id);
         }
-        return regionName.equals(this.usersRepository.get(id).getRegion().getName());
+
+        return isParamChanged;
     }
 
     public boolean removeUser(String userId) {
