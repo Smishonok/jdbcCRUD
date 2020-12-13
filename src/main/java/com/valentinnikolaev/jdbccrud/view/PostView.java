@@ -24,7 +24,7 @@ public class PostView {
                 .setNextHandler(removePostRequestHandler);
     }
 
-    public void action(String action, List<String> options) throws ClassNotFoundException {
+    public void action(String action, List<String> options) {
         requestHandler.handleRequest(action, options);
     }
 

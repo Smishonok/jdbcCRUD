@@ -24,7 +24,7 @@ public class JsonPostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public Post add(Post entity) {
+    public Optional<Post> add(Post entity) {
         String repositoryData = FileService.getDataFromRepository(repositoryPath);
         List<Post> posts = parser.parseList(repositoryData) == null ? new ArrayList<>() :
                 parser.parseList(repositoryData);
@@ -34,7 +34,7 @@ public class JsonPostRepositoryImpl implements PostRepository {
         FileService.writeDataIntoRepository(dataForWritingInRepo, repositoryPath);
 
         return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
-                post->post.equals(entity)).findFirst().get();
+                post->post.equals(entity)).findFirst();
     }
 
     @Override

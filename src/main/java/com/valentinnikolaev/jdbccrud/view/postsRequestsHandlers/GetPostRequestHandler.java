@@ -24,7 +24,7 @@ public class GetPostRequestHandler extends PostRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (GET.equals(action)) {
             processRequest(options);
         } else {

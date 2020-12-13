@@ -13,8 +13,7 @@ public abstract class RequestHandler {
 
     private RequestHandler nextRequestHandler;
 
-    public abstract void handleRequest(String action, List<String> options)
-            throws ClassNotFoundException;
+    public abstract void handleRequest(String action, List<String> options);
 
     public RequestHandler setNextHandler(RequestHandler handler) {
         this.nextRequestHandler = handler;
@@ -29,7 +28,7 @@ public abstract class RequestHandler {
         return hasNext;
     }
 
-    public void getNextHandler(String action, List<String> options) throws ClassNotFoundException {
+    public void getNextHandler(String action, List<String> options) {
         if (hasNextHandler()) {
             nextRequestHandler.handleRequest(action, options);
         } else {
@@ -41,7 +40,7 @@ public abstract class RequestHandler {
 
     public List<String> getOptionsWithOutFirst(List<String> options) {
         if (options.size() > 1) {
-            return options.subList(1, options.size() );
+            return options.subList(1, options.size());
         } else {
             return new ArrayList<>();
         }

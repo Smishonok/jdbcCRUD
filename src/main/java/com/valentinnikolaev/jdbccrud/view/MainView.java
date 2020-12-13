@@ -30,7 +30,7 @@ public class MainView {
         this.userView   = userView;
     }
 
-    public void initiateMainView() throws ClassNotFoundException {
+    public void initiateMainView()  {
         System.out.println(
                 "Hello, this is the simpleCRUDE app. This app created  in order to learn " +
                 "use to NIO package, streams API, lambda expressions, file`s input and " +
@@ -51,7 +51,7 @@ public class MainView {
         }
     }
 
-    private void processRequest(String request) throws ClassNotFoundException {
+    private void processRequest(String request) {
         List<String> requestParams = Arrays.asList(request.split(" "));
         String requestType = requestParams.size() > 0
                              ? requestParams.get(0)

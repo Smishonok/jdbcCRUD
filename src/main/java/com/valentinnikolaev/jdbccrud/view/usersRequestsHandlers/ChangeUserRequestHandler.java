@@ -19,7 +19,7 @@ public class ChangeUserRequestHandler extends UserRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (CHANGE.equals(action)) {
             String       requestType    = options.get(0);
             List<String> requestOptions = getOptionsWithOutFirst(options);
@@ -30,7 +30,7 @@ public class ChangeUserRequestHandler extends UserRequestHandler {
     }
 
     private void processRequest(String requestType, List<String> requestOptions)
-            throws ClassNotFoundException {
+            {
         int requestOptionsLength = requestOptions.size();
         switch (requestType) {
             case HELP:
@@ -51,7 +51,7 @@ public class ChangeUserRequestHandler extends UserRequestHandler {
         }
     }
 
-    private void changeUserParameters(List<String> requestOptions) throws ClassNotFoundException {
+    private void changeUserParameters(List<String> requestOptions) {
         String userId            = requestOptions.get(0);
         String changingParameter = requestOptions.get(1);
         String parameterValue    = requestOptions.get(2);
@@ -76,7 +76,7 @@ public class ChangeUserRequestHandler extends UserRequestHandler {
 
     }
 
-    private void changeUserRegion(String userId, String regionName) throws ClassNotFoundException {
+    private void changeUserRegion(String userId, String regionName) {
         if (isRegionNameValid(regionName)) {
             this.userController.changeUserRegion(userId, regionName);
         } else {

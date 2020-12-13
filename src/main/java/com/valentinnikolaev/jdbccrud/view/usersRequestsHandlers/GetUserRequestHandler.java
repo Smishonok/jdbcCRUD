@@ -21,7 +21,7 @@ public class GetUserRequestHandler extends UserRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (GET.equals(action)) {
             getUserData(options);
         } else {

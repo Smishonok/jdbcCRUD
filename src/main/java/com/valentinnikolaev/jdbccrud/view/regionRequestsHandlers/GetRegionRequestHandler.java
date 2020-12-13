@@ -18,7 +18,7 @@ public class GetRegionRequestHandler extends RegionRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (GET.equals(action)) {
             processRequest(options);
         } else {

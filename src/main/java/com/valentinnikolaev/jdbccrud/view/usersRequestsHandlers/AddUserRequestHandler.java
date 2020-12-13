@@ -20,7 +20,7 @@ public class AddUserRequestHandler extends UserRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (ADD.equals(action)) {
             addUser(options);
         } else {
@@ -28,7 +28,7 @@ public class AddUserRequestHandler extends UserRequestHandler {
         }
     }
 
-    private void addUser(List<String> options) throws ClassNotFoundException {
+    private void addUser(List<String> options) {
         int userDataLength = options.size();
 
         if (options.size() == 1 && options.get(0).equals(HELP)) {
@@ -53,7 +53,7 @@ public class AddUserRequestHandler extends UserRequestHandler {
         }
     }
 
-    private void addUserShort(List<String> options) throws ClassNotFoundException {
+    private void addUserShort(List<String> options) {
         String userFirstName = options.get(0);
         String userLastName  = options.get(1);
         String regionName    = options.get(2);
@@ -67,7 +67,7 @@ public class AddUserRequestHandler extends UserRequestHandler {
         }
     }
 
-    private void addUserLong(List<String> options)throws ClassNotFoundException {
+    private void addUserLong(List<String> options) {
         String userFirstName = options.get(0);
         String userLastName  = options.get(1);
         String userRole      = options.get(2);

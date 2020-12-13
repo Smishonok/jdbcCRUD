@@ -16,7 +16,7 @@ public class RemoveRegionRequestHandler extends RegionRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (REMOVE.equals(action)) {
             processRequest(options);
         } else {

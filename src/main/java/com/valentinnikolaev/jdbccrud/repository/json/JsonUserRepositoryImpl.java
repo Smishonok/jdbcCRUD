@@ -9,6 +9,7 @@ import com.valentinnikolaev.jdbccrud.utils.Constants;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class JsonUserRepositoryImpl implements UserRepository {
@@ -22,7 +23,7 @@ public class JsonUserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User add(User entity) {
+    public Optional<User> add(User entity) {
         String repositoryData = FileService.getDataFromRepository(repositoryPath);
         List<User> users = parser.parseList(repositoryData) == null ? new ArrayList<>() :
                 parser.parseList(repositoryData);
@@ -32,17 +33,17 @@ public class JsonUserRepositoryImpl implements UserRepository {
         FileService.writeDataIntoRepository(dataForWritingInRepo, repositoryPath);
 
         return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
-                user->user.equals(entity)).findFirst().get();
+                user->user.equals(entity)).findFirst();
     }
 
     @Override
-    public User get(Long aLong) {
+    public Optional<User> get(Long aLong) {
         return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
-                user->user.getId() == aLong).findFirst().get();
+                user->user.getId() == aLong).findFirst();
     }
 
     @Override
-    public User change(User entity) {
+    public Optional<User> change(User entity) {
         String     repositoryData = FileService.getDataFromRepository(repositoryPath);
         List<User> users          = parser.parseList(repositoryData);
 
@@ -57,7 +58,7 @@ public class JsonUserRepositoryImpl implements UserRepository {
         FileService.writeDataIntoRepository(dataForWritingInRepo, repositoryPath);
 
         return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
-                user->user.getId() == entity.getId()).findFirst().get();
+                user->user.getId() == entity.getId()).findFirst();
     }
 
     @Override

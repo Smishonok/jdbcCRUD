@@ -9,11 +9,14 @@ import com.valentinnikolaev.jdbccrud.utils.Constants;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class JsonRegionRepositoryImpl implements RegionRepository {
 
-    private JsonParser<Region> parser = JsonParserFactory.getFactory(Region.class).getParser();
-    private Path repositoryPath = Constants.REPOSITORY_PATH.resolve(
+    private JsonParser<Region> parser         = JsonParserFactory
+            .getFactory(Region.class)
+            .getParser();
+    private Path               repositoryPath = Constants.REPOSITORY_PATH.resolve(
             Constants.REGION_REPOSITORY_FILE_NAME);
 
     {
@@ -21,7 +24,7 @@ public class JsonRegionRepositoryImpl implements RegionRepository {
     }
 
     @Override
-    public Region add(Region entity) {
+    public Optional<Region> add(Region entity) {
         String repositoryData = FileService.getDataFromRepository(repositoryPath);
         List<Region> posts = parser.parseList(repositoryData) == null
                              ? new ArrayList<>()
@@ -31,28 +34,20 @@ public class JsonRegionRepositoryImpl implements RegionRepository {
         String dataForWritingInRepo = parser.serialise(posts);
         FileService.writeDataIntoRepository(dataForWritingInRepo, repositoryPath);
 
-        return parser
-                .parseList(FileService.getDataFromRepository(repositoryPath))
-                .stream()
-                .filter(region->region.equals(entity))
-                .findFirst()
-                .get();
+        return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
+                region->region.equals(entity)).findFirst();
     }
 
     @Override
-    public Region get(Long aLong) {
-        return parser
-                .parseList(FileService.getDataFromRepository(repositoryPath))
-                .stream()
-                .filter(region->region.getId() == aLong)
-                .findFirst()
-                .get();
+    public Optional<Region> get(Long aLong) {
+        return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
+                region->region.getId() == aLong).findFirst();
     }
 
     @Override
-    public Region change(Region entity) {
-        String repositoryData = FileService.getDataFromRepository(repositoryPath);
-        List<Region> posts = parser.parseList(repositoryData);
+    public Optional<Region> change(Region entity) {
+        String       repositoryData = FileService.getDataFromRepository(repositoryPath);
+        List<Region> posts          = parser.parseList(repositoryData);
 
         posts.stream().filter(region->region.getId() == entity.getId()).forEach(posts::remove);
         posts.add(entity);
@@ -60,18 +55,14 @@ public class JsonRegionRepositoryImpl implements RegionRepository {
         String dataForWritingInRepo = parser.serialise(posts);
         FileService.writeDataIntoRepository(dataForWritingInRepo, repositoryPath);
 
-        return parser
-                .parseList(FileService.getDataFromRepository(repositoryPath))
-                .stream()
-                .filter(region->region.getId() == entity.getId())
-                .findFirst()
-                .get();
+        return parser.parseList(FileService.getDataFromRepository(repositoryPath)).stream().filter(
+                region->region.getId() == entity.getId()).findFirst();
     }
 
     @Override
     public boolean remove(Long aLong) {
-        String repositoryData = FileService.getDataFromRepository(repositoryPath);
-        List<Region> posts = parser.parseList(repositoryData);
+        String       repositoryData = FileService.getDataFromRepository(repositoryPath);
+        List<Region> posts          = parser.parseList(repositoryData);
 
         posts.stream().filter(region->region.getId() == aLong).forEach(posts::remove);
         return parser

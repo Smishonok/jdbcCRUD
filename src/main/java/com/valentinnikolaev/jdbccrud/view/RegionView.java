@@ -17,14 +17,12 @@ public class RegionView {
                       @Autowired GetRegionRequestHandler getRegionRequestHandler,
                       @Autowired RemoveRegionRequestHandler removeRegionRequestHandler) {
         this.requestHandler = helpRegionRequestHandler;
-        helpRegionRequestHandler
-                .setNextHandler(addRegionRequestHandler)
-                .setNextHandler(changeRegionRequestHandler)
-                .setNextHandler(getRegionRequestHandler)
-                .setNextHandler(removeRegionRequestHandler);
+        helpRegionRequestHandler.setNextHandler(addRegionRequestHandler).setNextHandler(
+                changeRegionRequestHandler).setNextHandler(getRegionRequestHandler).setNextHandler(
+                removeRegionRequestHandler);
     }
 
-    public void action(String action, List<String> options) throws ClassNotFoundException {
+    public void action(String action, List<String> options) {
         requestHandler.handleRequest(action, options);
     }
 }

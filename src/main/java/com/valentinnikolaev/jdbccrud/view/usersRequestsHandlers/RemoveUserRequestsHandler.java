@@ -19,7 +19,7 @@ public class RemoveUserRequestsHandler extends UserRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (REMOVE.equals(action)) {
             String       optionType     = options.get(0);
             List<String> requestOptions = getOptionsWithOutFirst(options);

@@ -11,7 +11,7 @@ public class HelpPostRequestHandler extends PostRequestHandler {
     }
 
     @Override
-    public void handleRequest(String action, List<String> options) throws ClassNotFoundException {
+    public void handleRequest(String action, List<String> options) {
         if (HELP.equals(action)) {
             String helpInfo =
                     "This is the part of the console app in which you can add, change and " +
