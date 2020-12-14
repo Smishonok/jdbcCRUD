@@ -26,12 +26,12 @@ public class PostController {
         this.clock          = Clock.systemUTC();
     }
 
-    public PostController(PostRepository postRepository, UserController userController,
-                          Clock clock) {
-        this.postRepository = postRepository;
-        this.userController = userController;
-        this.clock          = clock;
-    }
+//    public PostController(PostRepository postRepository, UserController userController,
+//                          Clock clock) {
+//        this.postRepository = postRepository;
+//        this.userController = userController;
+//        this.clock          = clock;
+//    }
 
     public void addPost(String userId, String content) {
         Optional<User> user = this.userController.getUserById(userId);
@@ -43,7 +43,7 @@ public class PostController {
         }
 
         if (post.isEmpty()) {
-            System.out.println("Error! Post was`t added into repository.");
+            System.out.println("Error! Post wasn't added into repository.");
         }
     }
 

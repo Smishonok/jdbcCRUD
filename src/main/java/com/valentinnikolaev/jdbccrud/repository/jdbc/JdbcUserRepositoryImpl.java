@@ -176,7 +176,7 @@ public class JdbcUserRepositoryImpl implements UserRepository {
         boolean isContain = false;
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
-                    SQLQueries.SELECT_POST_BY_ID.toString());
+                    SQLQueries.SELECT_USER_BY_ID.toString());
             ResultSet resultSet = preparedStatement.executeQuery();
             isContain = resultSet.next();
             resultSet.close();

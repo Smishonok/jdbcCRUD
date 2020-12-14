@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,130 +36,78 @@ class PostControllerTest {
         @DisplayName (
                 "When add post for user which not exist then throw illegal argument exception")
         public void whenAddPostForUserWhichNotExistThenThrowIllegalArgException() {
-            //given
             Mockito.when(userControllerStub.getUserById("1")).thenReturn(Optional.empty());
-
-            //when
             Throwable throwable = catchThrowable(()->postController.addPost("1", "TestContent"));
-
-            //then
             assertThat(throwable).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
                     "user with id");
         }
 
-        @Test
-        @DisplayName ("When add post for user which exist then return added post")
-        public void whenAddPostForUserWhichExistThenReturnAddedPost() {
-            //given
-            User user = new User(1l, "UserName", "UserLastName", new Region(1l, "TestRegion"),
-                                 Role.ADMIN);
-
-            Mockito.when(userControllerStub.getUserById("1")).thenReturn(Optional.of(user));
-            List<Post> posts = new ArrayList<>();
-            posts.add(new Post(1, 1, "TestPost1"));
-            posts.add(new Post(2, 1, "TestPost2"));
-            Mockito.when(postRepositoryStub.getAll()).thenReturn(posts);
-
-            Post expectedPost = new Post(3, 1, "Expected post");
-            Mockito
-                    .when(postRepositoryStub.add(Mockito.any(Post.class)))
-                    .thenReturn(expectedPost);
-
-            //when
-            Post actualPost = postController.addPost("1", expectedPost.getContent());
-
-            //then
-            assertThat(actualPost).isEqualTo(expectedPost);
-        }
     }
 
 
     @Nested
-    class TestsForGetPostMethod{
+    class TestsForGetPostMethod {
 
         @Test
-        @DisplayName("When get post which exist in database then return post")
+        @DisplayName ("When get post which exist in database then return post")
         public void whenGetPostWhichExistInDbThenReturnPost() {
-            //given
-            Post expectedPost = new Post(1l, 1, "Test content");
-            Mockito.when(postRepositoryStub.isContains(1l)).thenReturn(true);
-            Mockito.when(postRepositoryStub.get(1l)).thenReturn(expectedPost);
-
-            //when
+            Clock clock = Clock.fixed(Instant.parse("2020-12-14T10:15:30.00Z"), ZoneOffset.UTC);
+            Post expectedPost = new Post(1L, 1L, "Test content",clock);
+            Mockito.when(postRepositoryStub.isContains(1L)).thenReturn(true);
+            Mockito.when(postRepositoryStub.get(1L)).thenReturn(Optional.of(expectedPost));
             Post actualPost = postController.getPost("1").get();
-
-            //then
             assertThat(actualPost).isEqualTo(expectedPost);
         }
 
         @Test
-        @DisplayName("When get post which is not exist in database then return empty optional")
+        @DisplayName ("When get post which is not exist in database then return empty optional")
         public void whenGetPostWhichNotExistInDbThenReturnEmptyOptional() {
-            //given
             Optional<Post> expectedOptionalValue = Optional.empty();
-
-            //when
             Optional<Post> actualValue = postController.getPost("1");
-
-            //then
             assertThat(actualValue).isEqualTo(expectedOptionalValue);
         }
     }
 
     @Nested
-    class TestsForGetAllMethod{
+    class TestsForGetAllMethod {
 
         @Test
-        @DisplayName("When getAll posts from repository then return all posts")
-        public void whenGetAllThenReturnAllPostFromRepository(){
-            //given
-            List<Post> expectedPosts = List.of(new Post(1l, 1l, "TestPost1"),
-                                               new Post(2l, 1l, "TestPost2"),
-                                               new Post(3l, 2l, "Post from another user"));
+        @DisplayName ("When getAll posts from repository then return all posts")
+        public void whenGetAllThenReturnAllPostFromRepository() {
+            Clock clock = Clock.fixed(Instant.parse("2020-12-14T10:15:30.00Z"), ZoneOffset.UTC);
+            List<Post> expectedPosts = List.of(new Post(1L, 1L, "TestPost1",clock),
+                                               new Post(2L, 1L, "TestPost2",clock),
+                                               new Post(3L, 2L, "Post from another user",clock));
             Mockito.when(postRepositoryStub.getAll()).thenReturn(expectedPosts);
-
-            //when
             List<Post> actualPosts = postController.getAllPostsList();
-
-            //then
             assertThat(actualPosts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(
                     expectedPosts);
         }
     }
 
     @Nested
-    class TestsForGetPostByUserIdMethod{
+    class TestsForGetPostByUserIdMethod {
 
         @Test
-        @DisplayName("When get post by user id then return user posts only")
+        @DisplayName ("When get post by user id then return user posts only")
         public void whenGetPostByUserIdThenReturnUserPostOnly() {
-            //given
-            List<Post> expectedPosts = List.of(new Post(1l, 1l, "TestPost1"),
-                                               new Post(2l, 1l, "TestPost2"),
-                                               new Post(3l, 1l, "One more post from user"));
-            Mockito.when(postRepositoryStub.getPostsByUserId(1l)).thenReturn(expectedPosts);
-
-            //when
+            Clock clock = Clock.fixed(Instant.parse("2020-12-14T10:15:30.00Z"), ZoneOffset.UTC);
+            List<Post> expectedPosts = List.of(new Post(1L, 1L, "TestPost1",clock),
+                                               new Post(2L, 1L, "TestPost2",clock),
+                                               new Post(3L, 1L, "One more post from user", clock));
+            Mockito.when(postRepositoryStub.getPostsByUserId(1L)).thenReturn(expectedPosts);
             List<Post> actualPosts = postController.getPostsByUserId("1");
-
-            //then
-            assertThat(actualPosts)
-                    .usingRecursiveComparison()
-                    .ignoringCollectionOrder()
-                    .isEqualTo(expectedPosts);
+            assertThat(actualPosts).usingRecursiveComparison().ignoringCollectionOrder().isEqualTo(
+                    expectedPosts);
         }
 
         @Test
-        @DisplayName("When get list of post by user id and posts are not exist then return empty " +
-                     "list")
+        @DisplayName (
+                "When get list of post by user id and posts are not exist then return empty " +
+                        "list")
         public void whenGetPostByUserIdAndPostsNotExistThenReturnEmptyList() {
-            //given
-            Mockito.when(postRepositoryStub.getPostsByUserId(1l)).thenReturn(new ArrayList<>());
-
-            //when
+            Mockito.when(postRepositoryStub.getPostsByUserId(1L)).thenReturn(new ArrayList<>());
             List<Post> actualPostList = postController.getPostsByUserId("1");
-
-            //then
             assertThat(actualPostList).isEmpty();
         }
     }
@@ -165,16 +116,16 @@ class PostControllerTest {
     class TestsForChangePostMethod {
 
         @Test
-        @DisplayName("When change post content then return changed post")
+        @DisplayName ("When change post content then return changed post")
         public void whenChangePostThenReturnChangedPost() {
-            //given
-            Post postBeforeChanging = new Post(1l, 1l, "Test post");
-            Mockito.when(postRepositoryStub.isContains(1l)).thenReturn(true);
-            Mockito.when(postRepositoryStub.get(1l)).thenReturn(postBeforeChanging);
+            Clock clock = Clock.fixed(Instant.parse("2020-12-14T10:15:30.00Z"), ZoneOffset.UTC);
+            Post postBeforeChanging = new Post(1L, 1L, "Test post", clock);
+            Mockito.when(postRepositoryStub.isContains(1L)).thenReturn(true);
+            Mockito.when(postRepositoryStub.get(1L)).thenReturn(Optional.of(postBeforeChanging));
             postBeforeChanging.setContent("Changed test post");
             Post expectedPost = postBeforeChanging;
-            Mockito.when(postRepositoryStub.change(expectedPost)).thenReturn(expectedPost);
-
+            Mockito.when(postRepositoryStub.change(expectedPost)).thenReturn(
+                    Optional.of(expectedPost));
         }
     }
 }
