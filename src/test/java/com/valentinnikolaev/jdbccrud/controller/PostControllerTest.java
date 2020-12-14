@@ -1,10 +1,8 @@
 package com.valentinnikolaev.jdbccrud.controller;
 
 import com.valentinnikolaev.jdbccrud.models.Post;
-import com.valentinnikolaev.jdbccrud.models.Region;
-import com.valentinnikolaev.jdbccrud.models.Role;
-import com.valentinnikolaev.jdbccrud.models.User;
 import com.valentinnikolaev.jdbccrud.repository.PostRepository;
+import com.valentinnikolaev.jdbccrud.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,9 +22,9 @@ import static org.assertj.core.api.Assertions.*;
 class PostControllerTest {
 
     private PostRepository postRepositoryStub = Mockito.mock(PostRepository.class);
-    private UserController userControllerStub = Mockito.mock(UserController.class);
+    private UserRepository userRepository = Mockito.mock(UserRepository.class);
     private PostController postController     = new PostController(postRepositoryStub,
-                                                                   userControllerStub);
+                                                                   userRepository);
 
 
     @Nested

@@ -98,12 +98,12 @@ public class ChangeUserRequestHandler extends UserRequestHandler {
     private void getHelpForChangingUserDataRequest() {
         String helpInfo =
                 "For changing user`s data in the repository it can be used next formats of" +
-                        "request:\n" + "\t1: " + ID + " [id number]" + FIRST_NAME +
+                        "request:\n" + "\t1: " + ID + " [id number] " + FIRST_NAME +
                         " [new user first name] - change " + "user first name\n" + "\t2: " + ID +
-                        " [id number]" + LAST_NAME + " [new user last name] - change " +
-                        "user last name\n" + "\t1: " + ID + " [id number]" + ROLE +
-                        " [new user role] - change " + "user role\n" + "\t1: " + ID +
-                        " [id number]" + REGION + " [new user region] - change " + "user region\n";
+                        " [id number] " + LAST_NAME + " [new user last name] - change " +
+                        "user last name\n" + "\t3: " + ID + " [id number] " + ROLE +
+                        " [new user role] - change " + "user role\n" + "\t4: " + ID +
+                        " [id number] " + REGION + " [new user region] - change " + "user region\n";
 
         System.out.println(helpInfo);
     }
