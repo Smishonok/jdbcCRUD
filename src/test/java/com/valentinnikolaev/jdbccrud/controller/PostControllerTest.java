@@ -28,22 +28,6 @@ class PostControllerTest {
     private PostController postController     = new PostController(postRepositoryStub,
                                                                    userControllerStub);
 
-    @Nested
-    class TestsForAddPostMethod {
-
-
-        @Test
-        @DisplayName (
-                "When add post for user which not exist then throw illegal argument exception")
-        public void whenAddPostForUserWhichNotExistThenThrowIllegalArgException() {
-            Mockito.when(userControllerStub.getUserById("1")).thenReturn(Optional.empty());
-            Throwable throwable = catchThrowable(()->postController.addPost("1", "TestContent"));
-            assertThat(throwable).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
-                    "user with id");
-        }
-
-    }
-
 
     @Nested
     class TestsForGetPostMethod {
@@ -63,6 +47,7 @@ class PostControllerTest {
         @DisplayName ("When get post which is not exist in database then return empty optional")
         public void whenGetPostWhichNotExistInDbThenReturnEmptyOptional() {
             Optional<Post> expectedOptionalValue = Optional.empty();
+            Mockito.when(postRepositoryStub.isContains(1L)).thenReturn(false);
             Optional<Post> actualValue = postController.getPost("1");
             assertThat(actualValue).isEqualTo(expectedOptionalValue);
         }

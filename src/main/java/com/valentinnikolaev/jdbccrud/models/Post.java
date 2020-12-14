@@ -18,6 +18,7 @@ public class Post {
         this.content = content;
         this.created = created;
         this.updated = updated;
+        this.clock = Clock.systemUTC();
     }
 
     public Post(Long id, Long userId, String content, Clock clock) {

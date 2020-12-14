@@ -29,7 +29,7 @@
                 </filters>
             </build>
             <properties>
-                <flyway.configFiles>application.properties</flyway.configFiles>
+                <flyway.configFiles>src/main/resources/application-test.properties</flyway.configFiles>
             </properties>
         </profile>
         <profile>
@@ -40,7 +40,7 @@
                 </filters>
             </build>
             <properties>
-                <flyway.configFiles>application.properties</flyway.configFiles>
+                <flyway.configFiles>src/main/resources/application-prod.properties</flyway.configFiles>
             </properties>
         </profile>
     </profiles>
@@ -160,23 +160,13 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>7.0.4</version>
-                <configuration>
-                    <configFiles>
-                        <configFile>src/main/resources/application.properties</configFile>
-                    </configFiles>
-                </configuration>
                 <executions>
                     <execution>
-                        <id>testDBMigrations</id>
-                        <phase>generate-test-sources</phase>
+                        <id>CheckDBMigrations</id>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>migrate</goal>
                         </goals>
-                        <configuration>
-                            <configFiles>
-                                <configFile>src/main/resources/application-test.properties</configFile>
-                            </configFiles>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

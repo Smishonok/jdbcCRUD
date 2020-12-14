@@ -6,14 +6,16 @@ public enum SQLQueries {
             "select * from users left join regions on users.region_id = regions.id"), SELECT_USER_BY_FIRST_NAME_AND_LAST_NAME(
             "select * from users left join regions on users.region_id = regions.id where " +
                     "first_name=? and last_name=?"), SELECT_USER_BY_ID(
-            "select first_name,last_name,region_id,regions.name,role from users left join regions on users.region_id = regions.id where users.id=?"), UPDATE_USER(
+            "select users.id,first_name,last_name,regions.id,regions.name,role from users " +
+            "left join regions on users.region_id = regions.id where users.id=?"), UPDATE_USER(
             "update users set first_name=?,last_name=?,region_id=?,role=? where id=?"), REMOVE_USER(
             "delete from users where id=?"), CREATE_REGION(
             "insert into regions(name) values (?)"), SELECT_REGION(
             "select * from regions"), SELECT_REGION_BY_NAME(
             "select * from regions where name =?"), SELECT_REGION_BY_ID(
             "select * from regions where id=?"), CREATE_POST(
-            "insert into posts(user_id, content, creating_date, dating_date) values (?,?,?,?)"), SELECT_POST(
+            "insert into posts(user_id, content, creating_date, updating_date) values (?,?,?,?)"),
+    SELECT_POST(
             "select * from posts"), SELECT_POST_BY_ID(
             "select * from posts where posts.id=?"), SELECT_POSTS_BY_USER_ID(
             "select * from posts where user_id=?"), UPDATE_POST(

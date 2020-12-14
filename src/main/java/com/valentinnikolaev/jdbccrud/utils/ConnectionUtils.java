@@ -29,7 +29,7 @@ public class ConnectionUtils {
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.FOREIGN_KEY_CHECKS.toString());
-            preparedStatement.setInt(1, 0);
+            preparedStatement.setLong(1,  1);
             preparedStatement.executeUpdate();
 
             preparedStatement = ConnectionUtils.getPreparedStatement(SQLQueries.TRUNCATE.toString());
@@ -38,7 +38,7 @@ public class ConnectionUtils {
 
             preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.FOREIGN_KEY_CHECKS.toString());
-            preparedStatement.setInt(1, 1);
+            preparedStatement.setString(1, "1");
             preparedStatement.executeUpdate();
 
             ResultSet resultSet = preparedStatement.executeQuery(SQLQueries.SELECT_POST.toString());

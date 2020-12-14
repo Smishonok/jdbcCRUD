@@ -69,7 +69,7 @@ public class RegionController {
         }
 
         if (regionFromDbOptional.isPresent() &&
-            ! regionOptional.get().equals(regionFromDbOptional.get())) {
+            regionOptional.get().equals(regionFromDbOptional.get())) {
             System.out.println("Region was changed.");
             return true;
         } else {

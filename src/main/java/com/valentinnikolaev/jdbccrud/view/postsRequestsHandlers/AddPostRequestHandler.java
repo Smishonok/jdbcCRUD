@@ -100,7 +100,7 @@ public class AddPostRequestHandler extends PostRequestHandler {
 
     private void getHelpForAddingPostRequest() {
         String helpInfo = "For adding posts into the repository it can be used next formats of" +
-                          "request:\n" + "\t" + ADD + " " + USER_ID + "[user id]" + " [content]";
+                          "request:\n" + "\t" + ADD + " " + "[user id]" + " [content]";
         System.out.println(helpInfo);
     }
 }

@@ -106,7 +106,7 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
             ResultSet resultSet = statement.executeQuery(SQLQueries.SELECT_REGION.toString());
 
             while (resultSet.next()) {
-                long   id   = resultSet.getLong("id");
+                long id = resultSet.getLong("id");
                 String name = resultSet.getString("name");
                 regionList.add(new Region(id, name));
             }
@@ -129,6 +129,7 @@ public class JdbcRegionRepositoryImpl implements RegionRepository {
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_REGION_BY_ID.toString());
+            preparedStatement.setLong(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
             isResultSetNotEmpty = resultSet.next();
             resultSet.close();

@@ -71,7 +71,7 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     }
 
     private Optional<User> getUserFromResultSet(ResultSet resultSet) throws SQLException {
-        long userId = resultSet.getLong("id");
+        long userId = resultSet.getLong("users.id");
         String userFirstName = resultSet.getString("first_name");
         String userLastName = resultSet.getString("last_name");
         long regionId = resultSet.getLong("regions.id");
@@ -177,6 +177,7 @@ public class JdbcUserRepositoryImpl implements UserRepository {
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_USER_BY_ID.toString());
+            preparedStatement.setLong(1,id);
             ResultSet resultSet = preparedStatement.executeQuery();
             isContain = resultSet.next();
             resultSet.close();

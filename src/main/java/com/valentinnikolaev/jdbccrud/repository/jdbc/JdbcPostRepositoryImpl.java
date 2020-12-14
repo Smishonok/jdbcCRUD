@@ -139,7 +139,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POST.toString());
-            ResultSet resultSet = preparedStatement.getResultSet();
+            ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 postsList.add(getPostFromResultSet(resultSet));
             }
@@ -158,19 +158,19 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     @Override
     public boolean isContains(Long id) {
-        boolean isResultSetEmpty = false;
+        boolean isResultSetNotEmpty = false;
         try {
             PreparedStatement preparedStatement = ConnectionUtils.getPreparedStatement(
                     SQLQueries.SELECT_POST_BY_ID.toString());
             preparedStatement.setLong(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
-            isResultSetEmpty = ! resultSet.next();
+            isResultSetNotEmpty = resultSet.next();
             resultSet.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
-            return isResultSetEmpty;
+            return isResultSetNotEmpty;
     }
 
     private Optional<Post> getPost(long userId, String content, LocalDateTime dateOfCreation) {
