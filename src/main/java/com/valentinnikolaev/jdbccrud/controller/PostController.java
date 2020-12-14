@@ -3,6 +3,7 @@ package com.valentinnikolaev.jdbccrud.controller;
 import com.valentinnikolaev.jdbccrud.models.Post;
 import com.valentinnikolaev.jdbccrud.models.User;
 import com.valentinnikolaev.jdbccrud.repository.PostRepository;
+import com.valentinnikolaev.jdbccrud.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -16,26 +17,26 @@ import java.util.Optional;
 @Scope ("singleton")
 public class PostController {
     private PostRepository postRepository;
-    private UserController userController;
+    private UserRepository userRepository;
     private Clock clock;
 
     @Autowired
     public PostController(@Autowired PostRepository postRepository,
-                          @Autowired UserController userController) {
+                          @Autowired UserRepository userRepository) {
         this.postRepository = postRepository;
-        this.userController = userController;
+        this.userRepository = userRepository;
         this.clock          = Clock.systemUTC();
     }
 
-    public PostController(PostRepository postRepository, UserController userController,
+    public PostController(PostRepository postRepository, UserRepository userRepository,
                           Clock clock) {
         this.postRepository = postRepository;
-        this.userController = userController;
+        this.userRepository =userRepository;
         this.clock          = clock;
     }
 
     public void addPost(String userId, String content) {
-        Optional<User> user = this.userController.getUserById(userId);
+        Optional<User> user = this.userRepository.get(Long.parseLong(userId));
 
         Optional<Post> post = Optional.empty();
         if (user.isPresent()) {
